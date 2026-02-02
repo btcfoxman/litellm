@@ -107,3 +107,4 @@ LAZY_LOADING_IMPROVEMENTS.md
 **/playwright-report
 **/*.storageState.json
 **/coverage
+/litellm/proxy/_experimental/out/*

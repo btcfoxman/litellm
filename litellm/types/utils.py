@@ -3103,6 +3103,8 @@ class LlmProviders(str, Enum):
     NANOGPT = "nano-gpt"
     POE = "poe"
     CHUTES = "chutes"
+    DYUAPI = "dyuapi"
+    S2API = "s2api"
     XIAOMI_MIMO = "xiaomi_mimo"
 
 

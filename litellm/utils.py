@@ -8588,6 +8588,14 @@ class ProviderConfigManager:
             from litellm.llms.runwayml.videos.transformation import RunwayMLVideoConfig
 
             return RunwayMLVideoConfig()
+        elif LlmProviders.DYUAPI == provider:
+            from litellm.llms.dyuapi.videos.transformation import DyuapiVideoConfig
+
+            return DyuapiVideoConfig()
+        elif LlmProviders.S2API == provider:
+            from litellm.llms.s2api.videos.transformation import S2APIVideoConfig
+
+            return S2APIVideoConfig()
         return None
 
     @staticmethod

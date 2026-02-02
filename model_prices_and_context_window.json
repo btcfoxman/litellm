@@ -31080,6 +31080,196 @@
             "1792x1024"
         ]
     },
+    "dyuapi/sora2-landscape": {
+        "litellm_provider": "dyuapi",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.006,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "landscape",
+            "recommended_use": "fast landscape",
+            "generation_time_minutes": "3-5",
+            "duration_seconds": 10,
+            "pricing_per_video_cny": 0.06
+        }
+    },
+    "dyuapi/sora2-portrait": {
+        "litellm_provider": "dyuapi",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.006,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "portrait",
+            "recommended_use": "fast portrait",
+            "generation_time_minutes": "3-5",
+            "duration_seconds": 10,
+            "pricing_per_video_cny": 0.06
+        }
+    },
+    "dyuapi/sora2-landscape-15s": {
+        "litellm_provider": "dyuapi",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.004,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "landscape",
+            "recommended_use": "high quality landscape",
+            "generation_time_minutes": "3-5",
+            "duration_seconds": 15,
+            "pricing_per_video_cny": 0.06
+        }
+    },
+    "dyuapi/sora2-portrait-15s": {
+        "litellm_provider": "dyuapi",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.004,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "portrait",
+            "recommended_use": "high quality portrait",
+            "generation_time_minutes": "3-5",
+            "duration_seconds": 15,
+            "pricing_per_video_cny": 0.06
+        }
+    },
+    "dyuapi/sora2-pro-landscape-25s": {
+        "litellm_provider": "dyuapi",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.04,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "landscape",
+            "recommended_use": "hd creative",
+            "generation_time_minutes": "15-30",
+            "duration_seconds": 25,
+            "pricing_per_video_cny": 1.0
+        }
+    },
+    "dyuapi/sora2-pro-portrait-25s": {
+        "litellm_provider": "dyuapi",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.04,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "portrait",
+            "recommended_use": "hd creative",
+            "generation_time_minutes": "15-30",
+            "duration_seconds": 25,
+            "pricing_per_video_cny": 1.0
+        }
+    },
+    "dyuapi/sora2-pro-portrait-hd-15s": {
+        "litellm_provider": "dyuapi",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.0666667,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "portrait",
+            "recommended_use": "hd fast",
+            "generation_time_minutes": "15-30",
+            "duration_seconds": 15,
+            "pricing_per_video_cny": 1.0
+        }
+    },
+    "dyuapi/sora2-pro-landscape-hd-15s": {
+        "litellm_provider": "dyuapi",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.0666667,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "landscape",
+            "recommended_use": "hd fast",
+            "generation_time_minutes": "15-30",
+            "duration_seconds": 15,
+            "pricing_per_video_cny": 1.0
+        }
+    },
+    "s2api/sora2-landscape-10s": {
+        "litellm_provider": "s2api",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.015,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "landscape",
+            "recommended_use": "fast landscape",
+            "generation_time_minutes": "unknown",
+            "duration_seconds": 10,
+            "pricing_per_video_cny": 0.15
+        }
+    },
+    "s2api/sora2-portrait-10s": {
+        "litellm_provider": "s2api",
+        "mode": "video_generation",
+        "output_cost_per_video_per_second": 0.015,
+        "supported_modalities": [
+            "text",
+            "image"
+        ],
+        "supported_output_modalities": [
+            "video"
+        ],
+        "metadata": {
+            "screen_orientation": "portrait",
+            "recommended_use": "fast portrait",
+            "generation_time_minutes": "unknown",
+            "duration_seconds": 10,
+            "pricing_per_video_cny": 0.15
+        }
+    },
     "runwayml/gen4_turbo": {
         "litellm_provider": "runwayml",
         "mode": "video_generation",

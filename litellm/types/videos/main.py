@@ -15,6 +15,7 @@ class VideoObject(BaseModel):
     expires_at: Optional[int] = None
     error: Optional[Dict[str, Any]] = None
     progress: Optional[int] = None
+    video_url: Optional[str] = None
     remixed_from_video_id: Optional[str] = None
     seconds: Optional[str] = None
     size: Optional[str] = None
