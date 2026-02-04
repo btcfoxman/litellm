@@ -8596,6 +8596,10 @@ class ProviderConfigManager:
             from litellm.llms.s2api.videos.transformation import S2APIVideoConfig
 
             return S2APIVideoConfig()
+        elif LlmProviders.WTAPI == provider:
+            from litellm.llms.wtapi.videos.transformation import WTAPIVideoConfig
+
+            return WTAPIVideoConfig()
         return None
 
     @staticmethod

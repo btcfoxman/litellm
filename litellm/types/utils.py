@@ -3105,6 +3105,7 @@ class LlmProviders(str, Enum):
     CHUTES = "chutes"
     DYUAPI = "dyuapi"
     S2API = "s2api"
+    WTAPI = "wtapi"
     XIAOMI_MIMO = "xiaomi_mimo"
 
 
