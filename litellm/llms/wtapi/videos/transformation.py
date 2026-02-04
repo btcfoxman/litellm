@@ -368,6 +368,18 @@ class WTAPIVideoConfig(BaseVideoConfig):
 
         video_url = (response_data.get("data") or {}).get("output")
         progress = response_data.get("progress")
+        if isinstance(progress, str):
+            progress = progress.strip()
+            if progress.endswith("%"):
+                try:
+                    progress = int(progress.rstrip("%").strip())
+                except ValueError:
+                    progress = None
+            else:
+                try:
+                    progress = int(progress)
+                except ValueError:
+                    progress = None
 
         video_data: Dict[str, Any] = {
             "id": response_data.get("task_id", ""),

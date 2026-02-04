@@ -150,7 +150,8 @@ class S2APIVideoConfig(BaseVideoConfig):
         if aspect_ratio is None:
             aspect_ratio = "landscape"
 
-        quality = video_create_optional_request_params.get("quality") or "standard"
+        # quality = video_create_optional_request_params.get("quality") or "standard"
+        quality = "hd"
 
         request_data["aspectRatio"] = aspect_ratio
         request_data["quality"] = quality
