@@ -220,6 +220,7 @@ class WTAPIVideoConfig(BaseVideoConfig):
         custom_llm_provider: Optional[str] = None,
         request_data: Optional[Dict] = None,
     ) -> VideoObject:
+        self._raise_for_status(raw_response)
         response_data = raw_response.json()
         task_id = response_data.get("task_id", "")
 
@@ -254,6 +255,7 @@ class WTAPIVideoConfig(BaseVideoConfig):
         raw_response: httpx.Response,
         logging_obj: LiteLLMLoggingObj,
     ) -> bytes:
+        self._raise_for_status(raw_response)
         response_data = raw_response.json()
         video_url = (response_data.get("data") or {}).get("output")
         if not video_url:
@@ -269,6 +271,7 @@ class WTAPIVideoConfig(BaseVideoConfig):
         raw_response: httpx.Response,
         logging_obj: LiteLLMLoggingObj,
     ) -> bytes:
+        self._raise_for_status(raw_response)
         response_data = raw_response.json()
         video_url = (response_data.get("data") or {}).get("output")
         if not video_url:
@@ -353,6 +356,7 @@ class WTAPIVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
         custom_llm_provider: Optional[str] = None,
     ) -> VideoObject:
+        self._raise_for_status(raw_response)
         response_data = raw_response.json()
         status_value = response_data.get("status")
 
@@ -394,6 +398,11 @@ class WTAPIVideoConfig(BaseVideoConfig):
                 "code": "FAILURE",
                 "message": response_data.get("fail_reason"),
             }
+            raise self.get_error_class(
+                error_message=str(video_data["error"]["message"]),
+                status_code=400,
+                headers=raw_response.headers,
+            )
 
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]
         if video_url:
@@ -415,4 +424,27 @@ class WTAPIVideoConfig(BaseVideoConfig):
             status_code=status_code,
             message=error_message,
             headers=headers,
+        )
+
+    def _raise_for_status(self, raw_response: httpx.Response) -> None:
+        if raw_response.status_code < 400:
+            return
+        error_message = raw_response.text
+        try:
+            response_json = raw_response.json()
+            error_message = (
+                response_json.get("detail")
+                or response_json.get("msg")
+                or response_json.get("message")
+                or response_json.get("error")
+                or response_json.get("error_message")
+                or response_json.get("fail_reason")
+                or error_message
+            )
+        except Exception:
+            pass
+        raise self.get_error_class(
+            error_message=str(error_message),
+            status_code=raw_response.status_code,
+            headers=raw_response.headers,
         )

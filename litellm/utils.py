@@ -8627,6 +8627,10 @@ class ProviderConfigManager:
             from litellm.llms.wtapi.videos.transformation import WTAPIVideoConfig
 
             return WTAPIVideoConfig()
+        elif LlmProviders.GGAPI == provider:
+            from litellm.llms.ggapi.videos.transformation import GGAPIVideoConfig
+
+            return GGAPIVideoConfig()
         return None
 
     @staticmethod

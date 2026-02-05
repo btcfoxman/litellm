@@ -172,7 +172,18 @@ class DyuapiVideoConfig(BaseVideoConfig):
         custom_llm_provider: Optional[str] = None,
         request_data: Optional[Dict] = None,
     ) -> VideoObject:
+        self._raise_for_status(raw_response)
         response_data = raw_response.json()
+        if response_data.get("status") == "failed":
+            raise self.get_error_class(
+                error_message=str(
+                    response_data.get("error_message")
+                    or response_data.get("error")
+                    or "video generation failed"
+                ),
+                status_code=400,
+                headers=raw_response.headers,
+            )
 
         video_data: Dict[str, Any] = {
             "id": response_data.get("id", ""),
@@ -219,6 +230,7 @@ class DyuapiVideoConfig(BaseVideoConfig):
         raw_response: httpx.Response,
         logging_obj: LiteLLMLoggingObj,
     ) -> bytes:
+        self._raise_for_status(raw_response)
         response_data = raw_response.json()
         video_url = response_data.get("video_url")
         if not video_url:
@@ -235,6 +247,7 @@ class DyuapiVideoConfig(BaseVideoConfig):
         raw_response: httpx.Response,
         logging_obj: LiteLLMLoggingObj,
     ) -> bytes:
+        self._raise_for_status(raw_response)
         response_data = raw_response.json()
         video_url = response_data.get("video_url")
         if not video_url:
@@ -321,6 +334,7 @@ class DyuapiVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
         custom_llm_provider: Optional[str] = None,
     ) -> VideoObject:
+        self._raise_for_status(raw_response)
         response_data = raw_response.json()
 
         video_data: Dict[str, Any] = {
@@ -341,6 +355,17 @@ class DyuapiVideoConfig(BaseVideoConfig):
         video_url = response_data.get("video_url")
         if video_url:
             video_obj._hidden_params["video_url"] = video_url
+
+        if response_data.get("status") == "failed":
+            raise self.get_error_class(
+                error_message=str(
+                    response_data.get("error_message")
+                    or response_data.get("error")
+                    or "video generation failed"
+                ),
+                status_code=400,
+                headers=raw_response.headers,
+            )
 
         if custom_llm_provider and video_obj.id:
             video_obj.id = encode_video_id_with_provider(
@@ -366,6 +391,28 @@ class DyuapiVideoConfig(BaseVideoConfig):
             status_code=status_code,
             message=error_message,
             headers=headers,
+        )
+
+    def _raise_for_status(self, raw_response: httpx.Response) -> None:
+        if raw_response.status_code < 400:
+            return
+        error_message = raw_response.text
+        try:
+            response_json = raw_response.json()
+            error_message = (
+                response_json.get("detail")
+                or response_json.get("msg")
+                or response_json.get("message")
+                or response_json.get("error")
+                or response_json.get("error_message")
+                or error_message
+            )
+        except Exception:
+            pass
+        raise self.get_error_class(
+            error_message=str(error_message),
+            status_code=raw_response.status_code,
+            headers=raw_response.headers,
         )
 
     def _add_image_to_files(
