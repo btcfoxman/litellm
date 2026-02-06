@@ -63,14 +63,20 @@ jobs:
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          DEPLOY_SERVICE: ${{ secrets.DEPLOY_SERVICE }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
+          envs: DEPLOY_PATH,GHCR_TOKEN,GHCR_USERNAME,DEPLOY_SERVICE
           script: |
             set -e
-            cd ${{ secrets.DEPLOY_PATH }}
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            docker compose pull "${{ secrets.DEPLOY_SERVICE }}"
-            docker compose up -d "${{ secrets.DEPLOY_SERVICE }}"
+            cd $DEPLOY_PATH
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            docker compose pull $DEPLOY_SERVICE
+            docker compose up -d $DEPLOY_SERVICE
