@@ -11,6 +11,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: Guangzhou
     permissions:
       contents: read
       packages: write
