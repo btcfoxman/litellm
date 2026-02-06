@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   litellm:
-    image: ghcr.io/btcfoxman/litellm:${IMAGE_TAG:-latest}
+    image: registry.cn-shenzhen.aliyuncs.com/epur/litellm:${IMAGE_TAG:-latest}
     container_name: litellm
     restart: unless-stopped
     command:
