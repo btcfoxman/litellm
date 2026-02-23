@@ -89,5 +89,6 @@ jobs:
             set -e
             cd $DEPLOY_PATH
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            docker compose pull $DEPLOY_SERVICE
-            docker compose up -d $DEPLOY_SERVICE
+            docker compose pull "$DEPLOY_SERVICE"
+            docker compose run --rm "$DEPLOY_SERVICE" --skip_server_startup --use_prisma_db_push --config /app/litellm-config.yaml
+            docker compose up -d "$DEPLOY_SERVICE"

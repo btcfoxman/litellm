@@ -38,7 +38,7 @@ class HDMAPIVideoConfig(BaseVideoConfig):
     """
     Configuration class for Haoduomi API (hdmapi) Sora2 video generation.
 
-    API Base: https://haoduomiapi.com
+    API Base: https://haoduomi.top
     Endpoints:
       - POST /v1/videos
       - GET  /v1/videos/{id}
@@ -120,7 +120,7 @@ class HDMAPIVideoConfig(BaseVideoConfig):
         api_base: Optional[str],
         litellm_params: dict,
     ) -> str:
-        resolved_api_base = (api_base or "https://haoduomiapi.com").rstrip("/")
+        resolved_api_base = (api_base or "https://haoduomi.top").rstrip("/")
         if resolved_api_base.endswith("/v1"):
             return resolved_api_base
         return f"{resolved_api_base}/v1"
