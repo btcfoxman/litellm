@@ -3163,6 +3163,7 @@ class LlmProviders(str, Enum):
     WTAPI = "wtapi"
     GGAPI = "ggapi"
     HDMAPI = "hdmapi"
+    XBSAPI = "xbsapi"
     XIAOMI_MIMO = "xiaomi_mimo"
     LITELLM_AGENT = "litellm_agent"
 

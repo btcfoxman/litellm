@@ -1,4 +1,8 @@
-﻿# name: Helm unit test
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Helm unit test
 
 # on:
 #   pull_request:

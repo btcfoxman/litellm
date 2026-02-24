@@ -1,4 +1,8 @@
-﻿# name: Simple PyPI Publish
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Simple PyPI Publish
 
 # on:
 #   workflow_dispatch:

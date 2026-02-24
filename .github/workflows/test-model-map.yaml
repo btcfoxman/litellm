@@ -1,4 +1,8 @@
-﻿# name: Validate model_prices_and_context_window.json
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Validate model_prices_and_context_window.json
 
 # on:
 #   pull_request:

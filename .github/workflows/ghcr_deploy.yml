@@ -1,4 +1,8 @@
-﻿# this workflow is triggered by an API call when there is a new PyPI release of LiteLLM
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# this workflow is triggered by an API call when there is a new PyPI release of LiteLLM
 # name: Build, Publish LiteLLM Docker Image. New Release
 # on:
 #   workflow_dispatch:

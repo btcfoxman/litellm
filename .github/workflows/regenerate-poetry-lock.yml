@@ -1,3 +1,7 @@
+on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
 #name: Regenerate poetry.lock
 #
 ## Runs whenever pyproject.toml is merged into main (the most common cause of

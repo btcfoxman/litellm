@@ -1,4 +1,8 @@
-﻿# name: LiteLLM MCP Tests (folder - tests/mcp_tests)
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: LiteLLM MCP Tests (folder - tests/mcp_tests)
 
 # on:
 #   pull_request:

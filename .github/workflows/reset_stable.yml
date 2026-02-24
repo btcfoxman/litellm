@@ -1,4 +1,8 @@
-﻿# name: Reset litellm_stable branch
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Reset litellm_stable branch
 
 # on:
 #   release:

@@ -1,4 +1,8 @@
-﻿# name: LiteLLM Mock Tests (folder - tests/test_litellm)
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: LiteLLM Mock Tests (folder - tests/test_litellm)
 
 # on:
 #   pull_request:

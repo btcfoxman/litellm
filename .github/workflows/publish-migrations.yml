@@ -1,4 +1,8 @@
-﻿# name: Publish Prisma Migrations
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Publish Prisma Migrations
 
 # permissions:
 #   contents: write

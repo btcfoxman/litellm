@@ -8682,6 +8682,10 @@ class ProviderConfigManager:
             from litellm.llms.hdmapi.videos.transformation import HDMAPIVideoConfig
 
             return HDMAPIVideoConfig()
+        elif LlmProviders.XBSAPI == provider:
+            from litellm.llms.xbsapi.videos.transformation import XBSAPIVideoConfig
+
+            return XBSAPIVideoConfig()
         return None
 
     @staticmethod

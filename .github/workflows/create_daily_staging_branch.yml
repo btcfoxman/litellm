@@ -1,4 +1,8 @@
-﻿# name: Create Daily Staging Branch
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Create Daily Staging Branch
 
 # on:
 #   schedule:

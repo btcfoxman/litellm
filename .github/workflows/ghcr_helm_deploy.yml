@@ -1,4 +1,8 @@
-﻿# Standalone workflow to publish LiteLLM Helm Chart
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# Standalone workflow to publish LiteLLM Helm Chart
 # Note: The main ghcr_deploy.yml workflow also publishes the Helm chart as part of a full release
 # name: Build, Publish LiteLLM Helm Chart. New Release
 # on:

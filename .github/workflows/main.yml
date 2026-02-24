@@ -1,4 +1,8 @@
-﻿# name: Publish Dev Release to PyPI
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Publish Dev Release to PyPI
 
 # on:
 #   workflow_dispatch:

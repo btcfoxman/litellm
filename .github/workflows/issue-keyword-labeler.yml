@@ -1,4 +1,8 @@
-﻿# name: Issue Keyword Labeler
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Issue Keyword Labeler
 
 # on:
 #   issues:

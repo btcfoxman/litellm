@@ -1,4 +1,8 @@
-﻿# name: Check Duplicate Issues
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Check Duplicate Issues
 
 # on:
 #   issues:

@@ -1,4 +1,8 @@
-﻿# name: LLM Translation Tests
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: LLM Translation Tests
 
 # on:
 #   workflow_dispatch:

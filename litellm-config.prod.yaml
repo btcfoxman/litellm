@@ -1,0 +1,335 @@
+model_list:
+  - model_name: gpt-5
+    litellm_params:
+      model: openai/gemini-3.0-pro
+      api_base: "http://127.0.0.1:4010/v1"
+      api_key: os.environ/GEMINI_FAST_API_KEY
+  - model_name: gemini-web-3.0-pro
+    litellm_params:
+      model: openai/gemini-3.0-pro
+      api_base: "http://127.0.0.1:4010/v1"
+      api_key: os.environ/GEMINI_FAST_API_KEY
+  - model_name: gemini-web-3.0-flash
+    litellm_params:
+      model: openai/gemini-3.0-flash
+      api_base: "http://127.0.0.1:4010/v1"
+      api_key: os.environ/GEMINI_FAST_API_KEY
+  - model_name: gemini-web-3.0-flash-thinking
+    litellm_params:
+      model: openai/gemini-3.0-flash-thinking
+      api_base: "http://127.0.0.1:4010/v1"
+      api_key: os.environ/GEMINI_FAST_API_KEY
+  - model_name: sora2-landscape-10s
+    litellm_params:
+      model: wtapi/sora2-landscape-10s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-portrait-10s
+    litellm_params:
+      model: wtapi/sora2-portrait-10s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-landscape-10s-dyuapi
+    litellm_params:
+      model: dyuapi/sora2-landscape
+      api_base: "https://api.dyuapi.com/v1"
+      api_key: os.environ/DYUAPI_API_KEY
+  - model_name: sora2-portrait-10s-dyuapi
+    litellm_params:
+      model: dyuapi/sora2-portrait
+      api_base: "https://api.dyuapi.com/v1"
+      api_key: os.environ/DYUAPI_API_KEY
+  - model_name: sora2-landscape-10s-s2api
+    litellm_params:
+      model: s2api/sora2-landscape-10s
+      api_base: "https://api.sora2api.ai"
+      api_key: os.environ/S2API_API_KEY
+  - model_name: sora2-portrait-10s-s2api
+    litellm_params:
+      model: s2api/sora2-portrait-10s
+      api_base: "https://api.sora2api.ai"
+      api_key: os.environ/S2API_API_KEY
+  - model_name: sora2-landscape-15s
+    litellm_params:
+      model: wtapi/sora2-landscape-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-portrait-15s
+    litellm_params:
+      model: wtapi/sora2-portrait-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-pro-landscape-25s
+    litellm_params:
+      model: wtapi/sora2-pro-landscape-25s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-pro-portrait-25s
+    litellm_params:
+      model: wtapi/sora2-pro-portrait-25s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-pro-portrait-hd-15s
+    litellm_params:
+      model: wtapi/sora2-pro-portrait-hd-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-pro-landscape-hd-15s
+    litellm_params:
+      model: wtapi/sora2-pro-landscape-hd-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-landscape-10s-wtapi
+    litellm_params:
+      model: wtapi/sora2-landscape-10s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-portrait-10s-wtapi
+    litellm_params:
+      model: wtapi/sora2-portrait-10s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-landscape-15s-wtapi
+    litellm_params:
+      model: wtapi/sora2-landscape-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-portrait-15s-wtapi
+    litellm_params:
+      model: wtapi/sora2-portrait-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-pro-landscape-25s-wtapi
+    litellm_params:
+      model: wtapi/sora2-pro-landscape-25s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-pro-portrait-25s-wtapi
+    litellm_params:
+      model: wtapi/sora2-pro-portrait-25s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-pro-portrait-hd-15s-wtapi
+    litellm_params:
+      model: wtapi/sora2-pro-portrait-hd-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-pro-landscape-hd-15s-wtapi
+    litellm_params:
+      model: wtapi/sora2-pro-landscape-hd-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: sora2-landscape-10s-wtapi-v1
+    litellm_params:
+      model: wtapi/sora2-landscape-10s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/V1_WTAPI_API_KEY
+  - model_name: sora2-portrait-10s-wtapi-v1
+    litellm_params:
+      model: wtapi/sora2-portrait-10s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/V1_WTAPI_API_KEY
+  - model_name: sora2-landscape-15s-wtapi-v1
+    litellm_params:
+      model: wtapi/sora2-landscape-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/V1_WTAPI_API_KEY
+  - model_name: sora2-portrait-15s-wtapi-v1
+    litellm_params:
+      model: wtapi/sora2-portrait-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/V1_WTAPI_API_KEY
+  - model_name: sora2-pro-landscape-25s-wtapi-v1
+    litellm_params:
+      model: wtapi/sora2-pro-landscape-25s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/V1_WTAPI_API_KEY
+  - model_name: sora2-pro-portrait-25s-wtapi-v1
+    litellm_params:
+      model: wtapi/sora2-pro-portrait-25s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/V1_WTAPI_API_KEY
+  - model_name: sora2-pro-portrait-hd-15s-wtapi-v1
+    litellm_params:
+      model: wtapi/sora2-pro-portrait-hd-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/V1_WTAPI_API_KEY
+  - model_name: sora2-pro-landscape-hd-15s-wtapi-v1
+    litellm_params:
+      model: wtapi/sora2-pro-landscape-hd-15s
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/V1_WTAPI_API_KEY
+  - model_name: sora2-landscape-15s-dyuapi
+    litellm_params:
+      model: dyuapi/sora2-landscape-15s
+      api_base: "https://api.dyuapi.com/v1"
+      api_key: os.environ/DYUAPI_API_KEY
+  - model_name: sora2-portrait-15s-dyuapi
+    litellm_params:
+      model: dyuapi/sora2-portrait-15s
+      api_base: "https://api.dyuapi.com/v1"
+      api_key: os.environ/DYUAPI_API_KEY
+  - model_name: sora2-pro-landscape-25s-dyuapi
+    litellm_params:
+      model: dyuapi/sora2-pro-landscape-25s
+      api_base: "https://api.dyuapi.com/v1"
+      api_key: os.environ/DYUAPI_API_KEY
+  - model_name: sora2-pro-portrait-25s-dyuapi
+    litellm_params:
+      model: dyuapi/sora2-pro-portrait-25s
+      api_base: "https://api.dyuapi.com/v1"
+      api_key: os.environ/DYUAPI_API_KEY
+  - model_name: sora2-pro-portrait-hd-15s-dyuapi
+    litellm_params:
+      model: dyuapi/sora2-pro-portrait-hd-15s
+      api_base: "https://api.dyuapi.com/v1"
+      api_key: os.environ/DYUAPI_API_KEY
+  - model_name: sora2-pro-landscape-hd-15s-dyuapi
+    litellm_params:
+      model: dyuapi/sora2-pro-landscape-hd-15s
+      api_base: "https://api.dyuapi.com/v1"
+      api_key: os.environ/DYUAPI_API_KEY
+  - model_name: sora2-landscape-10s-ggapi
+    litellm_params:
+      model: ggapi/sora2-landscape-10s
+      api_base: "https://api.geminigen.ai"
+      api_key: os.environ/GGAPI_API_KEY
+  - model_name: sora2-portrait-10s-ggapi
+    litellm_params:
+      model: ggapi/sora2-portrait-10s
+      api_base: "https://api.geminigen.ai"
+      api_key: os.environ/GGAPI_API_KEY
+  - model_name: sora2-landscape-15s-ggapi
+    litellm_params:
+      model: ggapi/sora2-landscape-15s
+      api_base: "https://api.geminigen.ai"
+      api_key: os.environ/GGAPI_API_KEY
+  - model_name: sora2-portrait-15s-ggapi
+    litellm_params:
+      model: ggapi/sora2-portrait-15s
+      api_base: "https://api.geminigen.ai"
+      api_key: os.environ/GGAPI_API_KEY
+  - model_name: sora2-pro-landscape-25s-ggapi
+    litellm_params:
+      model: ggapi/sora2-pro-landscape-25s
+      api_base: "https://api.geminigen.ai"
+      api_key: os.environ/GGAPI_API_KEY
+  - model_name: sora2-pro-portrait-25s-ggapi
+    litellm_params:
+      model: ggapi/sora2-pro-portrait-25s
+      api_base: "https://api.geminigen.ai"
+      api_key: os.environ/GGAPI_API_KEY
+  - model_name: sora2-pro-portrait-hd-15s-ggapi
+    litellm_params:
+      model: ggapi/sora2-pro-portrait-hd-15s
+      api_base: "https://api.geminigen.ai"
+      api_key: os.environ/GGAPI_API_KEY
+  - model_name: sora2-pro-landscape-hd-15s-ggapi
+    litellm_params:
+      model: ggapi/sora2-pro-landscape-hd-15s
+      api_base: "https://api.geminigen.ai"
+      api_key: os.environ/GGAPI_API_KEY
+  - model_name: sora2-landscape-10s-hdmapi
+    litellm_params:
+      model: hdmapi/sora2-landscape-10s
+      api_base: "https://haoduomiapi.com"
+      api_key: os.environ/HDMAPI_API_KEY
+  - model_name: sora2-portrait-10s-hdmapi
+    litellm_params:
+      model: hdmapi/sora2-portrait-10s
+      api_base: "https://haoduomiapi.com"
+      api_key: os.environ/HDMAPI_API_KEY
+  - model_name: sora2-landscape-15s-hdmapi
+    litellm_params:
+      model: hdmapi/sora2-landscape-15s
+      api_base: "https://haoduomiapi.com"
+      api_key: os.environ/HDMAPI_API_KEY
+  - model_name: sora2-portrait-15s-hdmapi
+    litellm_params:
+      model: hdmapi/sora2-portrait-15s
+      api_base: "https://haoduomiapi.com"
+      api_key: os.environ/HDMAPI_API_KEY
+  - model_name: sora2-pro-landscape-25s-hdmapi
+    litellm_params:
+      model: hdmapi/sora2-pro-landscape-25s
+      api_base: "https://haoduomiapi.com"
+      api_key: os.environ/HDMAPI_API_KEY
+  - model_name: sora2-pro-portrait-25s-hdmapi
+    litellm_params:
+      model: hdmapi/sora2-pro-portrait-25s
+      api_base: "https://haoduomiapi.com"
+      api_key: os.environ/HDMAPI_API_KEY
+  - model_name: sora2-pro-portrait-hd-15s-hdmapi
+    litellm_params:
+      model: hdmapi/sora2-pro-portrait-hd-15s
+      api_base: "https://haoduomiapi.com"
+      api_key: os.environ/HDMAPI_API_KEY
+  - model_name: sora2-pro-landscape-hd-15s-hdmapi
+    litellm_params:
+      model: hdmapi/sora2-pro-landscape-hd-15s
+      api_base: "https://haoduomiapi.com"
+      api_key: os.environ/HDMAPI_API_KEY
+  - model_name: sora2-landscape-10s-xbsapi
+    litellm_params:
+      model: xbsapi/sora2-landscape-10s
+      api_base: "https://api.xintianwengai.com"
+      api_key: os.environ/XBSAPI_API_KEY
+  - model_name: sora2-portrait-10s-xbsapi
+    litellm_params:
+      model: xbsapi/sora2-portrait-10s
+      api_base: "https://api.xintianwengai.com"
+      api_key: os.environ/XBSAPI_API_KEY
+  - model_name: sora2-landscape-15s-xbsapi
+    litellm_params:
+      model: xbsapi/sora2-landscape-15s
+      api_base: "https://api.xintianwengai.com"
+      api_key: os.environ/XBSAPI_API_KEY
+  - model_name: sora2-portrait-15s-xbsapi
+    litellm_params:
+      model: xbsapi/sora2-portrait-15s
+      api_base: "https://api.xintianwengai.com"
+      api_key: os.environ/XBSAPI_API_KEY
+  - model_name: sora2-pro-landscape-25s-xbsapi
+    litellm_params:
+      model: xbsapi/sora2-pro-landscape-25s
+      api_base: "https://api.xintianwengai.com"
+      api_key: os.environ/XBSAPI_API_KEY
+  - model_name: sora2-pro-portrait-25s-xbsapi
+    litellm_params:
+      model: xbsapi/sora2-pro-portrait-25s
+      api_base: "https://api.xintianwengai.com"
+      api_key: os.environ/XBSAPI_API_KEY
+  - model_name: sora2-pro-portrait-hd-15s-xbsapi
+    litellm_params:
+      model: xbsapi/sora2-pro-portrait-hd-15s
+      api_base: "https://api.xintianwengai.com"
+      api_key: os.environ/XBSAPI_API_KEY
+  - model_name: sora2-pro-landscape-hd-15s-xbsapi
+    litellm_params:
+      model: xbsapi/sora2-pro-landscape-hd-15s
+      api_base: "https://api.xintianwengai.com"
+      api_key: os.environ/XBSAPI_API_KEY
+
+litellm_settings:
+  num_retries: 2
+  cache: false
+
+router_settings:
+  fallbacks:
+    - sora2-landscape-10s: ["sora2-landscape-10s-dyuapi","sora2-landscape-10s-s2api","sora2-landscape-10s-hdmapi","sora2-landscape-10s-xbsapi"]
+    - sora2-portrait-10s: ["sora2-portrait-10s-dyuapi","sora2-portrait-10s-s2api","sora2-portrait-10s-hdmapi","sora2-portrait-10s-xbsapi"]
+    - sora2-landscape-15s: ["sora2-landscape-15s-dyuapi","sora2-landscape-15s-hdmapi","sora2-landscape-15s-xbsapi"]
+    - sora2-portrait-15s: ["sora2-portrait-15s-dyuapi","sora2-portrait-15s-hdmapi","sora2-portrait-15s-xbsapi"]
+    - sora2-pro-landscape-25s: ["sora2-pro-landscape-25s-dyuapi","sora2-pro-landscape-25s-hdmapi","sora2-pro-landscape-25s-xbsapi"]
+    - sora2-pro-portrait-25s: ["sora2-pro-portrait-25s-dyuapi","sora2-pro-portrait-25s-hdmapi","sora2-pro-portrait-25s-xbsapi"]
+    - sora2-pro-portrait-hd-15s: ["sora2-pro-portrait-hd-15s-dyuapi","sora2-pro-portrait-hd-15s-hdmapi","sora2-pro-portrait-hd-15s-xbsapi"]
+    - sora2-pro-landscape-hd-15s: ["sora2-pro-landscape-hd-15s-dyuapi","sora2-pro-landscape-hd-15s-hdmapi","sora2-pro-landscape-hd-15s-xbsapi"]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  store_model_in_db: True
+  proxy_budget_rescheduler_min_time: 60
+  proxy_budget_rescheduler_max_time: 64
+  proxy_batch_write_at: 1
+  database_connection_pool_limit: 10
+  store_prompts_in_spend_logs: True

@@ -1,4 +1,8 @@
-﻿# name: LiteLLM Linting
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: LiteLLM Linting
 
 # on:
 #   pull_request:

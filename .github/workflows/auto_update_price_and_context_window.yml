@@ -1,4 +1,8 @@
-﻿# name: Updates model_prices_and_context_window.json and Create Pull Request
+﻿on:
+  push:
+    branches:
+      - "a-branch-that-will-never-exist-999"
+# name: Updates model_prices_and_context_window.json and Create Pull Request
 
 # on:
 #   schedule:
