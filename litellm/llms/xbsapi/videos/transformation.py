@@ -1,3 +1,4 @@
+import json
 from io import BufferedReader
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
@@ -50,9 +51,6 @@ class XBSAPIVideoConfig(BaseVideoConfig):
             "prompt",
             "input_reference",
             "image_url",
-            "user",
-            "extra_headers",
-            "extra_body",
         ]
 
     def map_openai_params(
@@ -66,13 +64,6 @@ class XBSAPIVideoConfig(BaseVideoConfig):
         for key in ("input_reference", "image_url"):
             if key in video_create_optional_params:
                 mapped_params[key] = video_create_optional_params[key]
-
-        if not drop_params:
-            supported_openai_params = set(self.get_supported_openai_params(model))
-            for key, value in video_create_optional_params.items():
-                if key in mapped_params or key in supported_openai_params:
-                    continue
-                mapped_params[key] = value
 
         return mapped_params
 
@@ -165,12 +156,6 @@ class XBSAPIVideoConfig(BaseVideoConfig):
         if model_override:
             request_data["model"] = str(model_override)
 
-        for key, value in video_create_optional_request_params.items():
-            if key in {"input_reference"}:
-                continue
-            if value is not None:
-                request_data[key] = value
-
         files_list: List[Tuple[str, Any]] = []
         for key, value in request_data.items():
             self._add_form_field(files_list, key, value)
@@ -185,6 +170,10 @@ class XBSAPIVideoConfig(BaseVideoConfig):
                         break
             else:
                 self._add_image_to_files(files_list, input_reference, "input_reference")
+        else:
+            image_url = video_create_optional_request_params.get("image_url")
+            if isinstance(image_url, str) and image_url:
+                self._add_form_field(files_list, "input_reference", image_url)
 
         full_api_base = f"{api_base}/videos"
         # data intentionally left empty; files_list contains all multipart fields.
@@ -199,7 +188,7 @@ class XBSAPIVideoConfig(BaseVideoConfig):
         request_data: Optional[Dict] = None,
     ) -> VideoObject:
         self._raise_for_status(raw_response)
-        response_data = raw_response.json()
+        response_data = self._normalize_response_json(raw_response.json())
 
         status = response_data.get("status", "queued")
         if status == "failed":
@@ -255,7 +244,7 @@ class XBSAPIVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
     ) -> bytes:
         self._raise_for_status(raw_response)
-        response_data = raw_response.json()
+        response_data = self._normalize_response_json(raw_response.json())
         video_url = response_data.get("video_url")
         if not video_url:
             raise ValueError("video_url not found in response. Video may not be ready.")
@@ -271,7 +260,7 @@ class XBSAPIVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
     ) -> bytes:
         self._raise_for_status(raw_response)
-        response_data = raw_response.json()
+        response_data = self._normalize_response_json(raw_response.json())
         video_url = response_data.get("video_url")
         if not video_url:
             raise ValueError("video_url not found in response. Video may not be ready.")
@@ -355,7 +344,7 @@ class XBSAPIVideoConfig(BaseVideoConfig):
         custom_llm_provider: Optional[str] = None,
     ) -> VideoObject:
         self._raise_for_status(raw_response)
-        response_data = raw_response.json()
+        response_data = self._normalize_response_json(raw_response.json())
 
         progress = response_data.get("progress")
         if isinstance(progress, str):
@@ -427,6 +416,22 @@ class XBSAPIVideoConfig(BaseVideoConfig):
 
     def _raise_for_status(self, raw_response: httpx.Response) -> None:
         if raw_response.status_code < 400:
+            # Some channels return business errors with HTTP 200.
+            response_json: Dict[str, Any] = {}
+            try:
+                parsed = raw_response.json()
+                if isinstance(parsed, dict):
+                    response_json = parsed
+            except Exception:
+                pass
+
+            if self._is_business_error(response_json):
+                error_message = self._extract_business_error_message(response_json)
+                raise self.get_error_class(
+                    error_message=error_message,
+                    status_code=400,
+                    headers=raw_response.headers,
+                )
             return
 
         error_message = raw_response.text
@@ -449,3 +454,41 @@ class XBSAPIVideoConfig(BaseVideoConfig):
             headers=raw_response.headers,
         )
 
+    def _is_business_error(self, response_json: Any) -> bool:
+        if not isinstance(response_json, dict):
+            return False
+        code = response_json.get("code")
+        if isinstance(code, str):
+            lowered = code.lower()
+            if lowered.startswith("fail") or lowered.startswith("error"):
+                return True
+        if response_json.get("error") is not None:
+            return True
+        if response_json.get("success") is False:
+            return True
+        return False
+
+    def _extract_business_error_message(self, response_json: Dict[str, Any]) -> str:
+        message: Any = response_json.get("message") or response_json.get("msg")
+        if isinstance(message, str) and message.strip().startswith("{"):
+            try:
+                nested = json.loads(message)
+                if isinstance(nested, dict):
+                    nested_error = nested.get("error") or {}
+                    if isinstance(nested_error, dict):
+                        nested_message = nested_error.get("message")
+                        if nested_message:
+                            return str(nested_message)
+            except Exception:
+                pass
+        if message:
+            return str(message)
+        return str(response_json.get("error") or response_json)
+
+    def _normalize_response_json(self, response_json: Any) -> Dict[str, Any]:
+        if not isinstance(response_json, dict):
+            return {}
+        data = response_json.get("data")
+        if isinstance(data, dict):
+            return data
+        return response_json
