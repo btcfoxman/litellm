@@ -34,11 +34,11 @@ else:
     BaseLLMException = Any
 
 
-class HDMAPIVideoConfig(BaseVideoConfig):
+class YWAPIVideoConfig(BaseVideoConfig):
     """
-    Configuration class for Haoduomi API (hdmapi) Sora2 video generation.
+    Configuration class for Yunwu API (ywapi) Sora2 video generation.
 
-    API Base: https://haoduomi.top
+    API Base: https://yunwu.ai
     Endpoints:
       - POST /v1/videos
       - GET  /v1/videos/{id}
@@ -102,13 +102,12 @@ class HDMAPIVideoConfig(BaseVideoConfig):
         api_key = (
             api_key
             or litellm.api_key
-            or get_secret_str("HDMAPI_API_KEY")
-            or get_secret_str("HAODUOMI_API_KEY")
+            or get_secret_str("YWAPI_API_KEY")
         )
 
         if api_key is None:
             raise ValueError(
-                "HDMAPI API key is required. Set HDMAPI_API_KEY env var or pass api_key."
+                "YWAPI API key is required. Set YWAPI_API_KEY env var or pass api_key."
             )
 
         headers.update({"Authorization": f"Bearer {api_key}"})
@@ -120,7 +119,7 @@ class HDMAPIVideoConfig(BaseVideoConfig):
         api_base: Optional[str],
         litellm_params: dict,
     ) -> str:
-        resolved_api_base = (api_base or "https://haoduomi.top").rstrip("/")
+        resolved_api_base = (api_base or "https://yunwu.ai").rstrip("/")
         if resolved_api_base.endswith("/v1"):
             return resolved_api_base
         return f"{resolved_api_base}/v1"
@@ -285,7 +284,7 @@ class HDMAPIVideoConfig(BaseVideoConfig):
             raise ValueError("video_url not found in response. Video may not be ready.")
 
         async_httpx_client: AsyncHTTPHandler = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.HDMAPI,
+            llm_provider=litellm.LlmProviders.YWAPI,
         )
         video_response = await async_httpx_client.get(video_url)
         video_response.raise_for_status()
@@ -301,7 +300,7 @@ class HDMAPIVideoConfig(BaseVideoConfig):
         headers: dict,
         extra_body: Optional[Dict[str, Any]] = None,
     ) -> Tuple[str, Dict]:
-        raise NotImplementedError("Video remix is not supported by HDMAPI.")
+        raise NotImplementedError("Video remix is not supported by YWAPI.")
 
     def transform_video_remix_response(
         self,
@@ -309,7 +308,7 @@ class HDMAPIVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
         custom_llm_provider: Optional[str] = None,
     ) -> VideoObject:
-        raise NotImplementedError("Video remix is not supported by HDMAPI.")
+        raise NotImplementedError("Video remix is not supported by YWAPI.")
 
     def transform_video_list_request(
         self,
@@ -321,7 +320,7 @@ class HDMAPIVideoConfig(BaseVideoConfig):
         order: Optional[str] = None,
         extra_query: Optional[Dict[str, Any]] = None,
     ) -> Tuple[str, Dict]:
-        raise NotImplementedError("Video list is not supported by HDMAPI.")
+        raise NotImplementedError("Video list is not supported by YWAPI.")
 
     def transform_video_list_response(
         self,
@@ -329,7 +328,7 @@ class HDMAPIVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
         custom_llm_provider: Optional[str] = None,
     ) -> Dict[str, str]:
-        raise NotImplementedError("Video list is not supported by HDMAPI.")
+        raise NotImplementedError("Video list is not supported by YWAPI.")
 
     def transform_video_delete_request(
         self,
@@ -338,14 +337,14 @@ class HDMAPIVideoConfig(BaseVideoConfig):
         litellm_params: GenericLiteLLMParams,
         headers: dict,
     ) -> Tuple[str, Dict]:
-        raise NotImplementedError("Video delete is not supported by HDMAPI.")
+        raise NotImplementedError("Video delete is not supported by YWAPI.")
 
     def transform_video_delete_response(
         self,
         raw_response: httpx.Response,
         logging_obj: LiteLLMLoggingObj,
     ) -> VideoObject:
-        raise NotImplementedError("Video delete is not supported by HDMAPI.")
+        raise NotImplementedError("Video delete is not supported by YWAPI.")
 
     def transform_video_status_retrieve_request(
         self,

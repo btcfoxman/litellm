@@ -8678,10 +8678,10 @@ class ProviderConfigManager:
             from litellm.llms.ggapi.videos.transformation import GGAPIVideoConfig
 
             return GGAPIVideoConfig()
-        elif LlmProviders.HDMAPI == provider:
-            from litellm.llms.hdmapi.videos.transformation import HDMAPIVideoConfig
+        elif LlmProviders.YWAPI == provider:
+            from litellm.llms.ywapi.videos.transformation import YWAPIVideoConfig
 
-            return HDMAPIVideoConfig()
+            return YWAPIVideoConfig()
         elif LlmProviders.XBSAPI == provider:
             from litellm.llms.xbsapi.videos.transformation import XBSAPIVideoConfig
 
