@@ -14,6 +14,12 @@ from litellm.llms.custom_httpx.http_handler import (
     _get_httpx_client,
     get_async_httpx_client,
 )
+from litellm.llms.wtapi.videos.sora_transformation import (
+    WTAPISoraVideoRequestTransformer,
+)
+from litellm.llms.wtapi.videos.veo_transformation import (
+    WTAPIVeoVideoRequestTransformer,
+)
 from litellm.secret_managers.main import get_secret_str
 from litellm.types.router import GenericLiteLLMParams
 from litellm.types.videos.main import VideoCreateOptionalRequestParams, VideoObject
@@ -40,23 +46,16 @@ class WTAPIVideoConfig(BaseVideoConfig):
       - GET  /v2/videos/generations/{task_id}
     """
 
+    def __init__(self):
+        super().__init__()
+        self._sora_request_transformer = WTAPISoraVideoRequestTransformer()
+        self._veo_request_transformer = WTAPIVeoVideoRequestTransformer()
+
     def get_supported_openai_params(self, model: str) -> list:
-        return [
-            "model",
-            "prompt",
-            "input_reference",
-            "image_url",
-            "images",
-            "aspect_ratio",
-            "duration",
-            "hd",
-            "notify_hook",
-            "watermark",
-            "private",
-            "user",
-            "extra_headers",
-            "extra_body",
-        ]
+        provider_model = self._resolve_provider_model(model)
+        if self._is_veo_model(provider_model):
+            return self._veo_request_transformer.get_supported_openai_params()
+        return self._sora_request_transformer.get_supported_openai_params()
 
     def map_openai_params(
         self,
@@ -64,29 +63,16 @@ class WTAPIVideoConfig(BaseVideoConfig):
         model: str,
         drop_params: bool,
     ) -> Dict:
-        mapped_params: Dict[str, Any] = {}
-        for key in (
-            "input_reference",
-            "image_url",
-            "images",
-            "aspect_ratio",
-            "duration",
-            "hd",
-            "notify_hook",
-            "watermark",
-            "private",
-        ):
-            if key in video_create_optional_params:
-                mapped_params[key] = video_create_optional_params[key]
-
-        if not drop_params:
-            supported_openai_params = set(self.get_supported_openai_params(model))
-            for key, value in video_create_optional_params.items():
-                if key in mapped_params or key in supported_openai_params:
-                    continue
-                mapped_params[key] = value
-
-        return mapped_params
+        provider_model = self._resolve_provider_model(
+            model, optional_model=video_create_optional_params.get("model")
+        )
+        if self._is_veo_model(provider_model):
+            return self._veo_request_transformer.map_openai_params(
+                video_create_optional_params, drop_params=drop_params
+            )
+        return self._sora_request_transformer.map_openai_params(
+            video_create_optional_params, drop_params=drop_params
+        )
 
     def validate_environment(
         self,
@@ -122,25 +108,25 @@ class WTAPIVideoConfig(BaseVideoConfig):
         api_base = api_base or "https://api.whatai.cc"
         return api_base.rstrip("/")
 
-    def _infer_aspect_ratio_from_model(self, model: str) -> str:
-        if "portrait" in model:
-            return "9:16"
-        return "16:9"
+    def _get_model_token(self, model: str) -> str:
+        if not model:
+            return ""
+        if "/" in model:
+            return model.split("/", 1)[1]
+        return model
 
-    def _infer_duration_from_model(self, model: str) -> str:
-        if "25s" in model:
-            return "25"
-        if "15s" in model:
-            return "15"
-        return "10"
+    def _is_veo_model(self, model: str) -> bool:
+        return self._veo_request_transformer.is_veo_provider_model(model)
 
-    def _infer_model_variant(self, model: str) -> str:
-        if "pro" in model:
-            return "sora-2-pro"
-        return "sora-2"
-
-    def _infer_hd(self, model: str) -> bool:
-        return "hd" in model
+    def _resolve_provider_model(
+        self, model: str, optional_model: Optional[Any] = None
+    ) -> str:
+        if optional_model:
+            return str(optional_model)
+        model_token = self._get_model_token(model).strip().lower()
+        if self._is_veo_model(model_token):
+            return self._veo_request_transformer.infer_provider_model(model)
+        return self._sora_request_transformer.infer_provider_model(model)
 
     def _image_to_base64(self, image: Any) -> str:
         if isinstance(image, BufferedReader):
@@ -170,25 +156,11 @@ class WTAPIVideoConfig(BaseVideoConfig):
         litellm_params: GenericLiteLLMParams,
         headers: dict,
     ) -> Tuple[Dict, list, str]:
-        request_data: Dict[str, Any] = {
-            "prompt": prompt,
-            "model": self._infer_model_variant(model),
-            "aspect_ratio": self._infer_aspect_ratio_from_model(model),
-            "duration": self._infer_duration_from_model(model),
-            "hd": self._infer_hd(model),
-        }
-
-        # Allow overrides
-        for key in ("model", "aspect_ratio", "duration", "hd", "notify_hook", "watermark", "private"):
-            value = video_create_optional_request_params.get(key)
-            if value is not None:
-                request_data[key] = value
-
         # images (required)
         images: List[str] = []
         images_value = video_create_optional_request_params.get("images")
         if isinstance(images_value, list):
-            images.extend([str(v) for v in images_value if v])
+            images.extend([self._image_to_base64(v) for v in images_value if v is not None])
         elif isinstance(images_value, str) and images_value:
             images.append(images_value)
 
@@ -200,14 +172,31 @@ class WTAPIVideoConfig(BaseVideoConfig):
         if input_reference is not None:
             if isinstance(input_reference, list):
                 for img in input_reference:
-                    images.append(self._image_to_base64(img))
+                    if img is not None:
+                        images.append(self._image_to_base64(img))
             else:
                 images.append(self._image_to_base64(input_reference))
 
         if not images:
             raise ValueError("WTAPI requires at least one image in `images`.")
-
-        request_data["images"] = images
+        provider_model = self._resolve_provider_model(
+            model, optional_model=video_create_optional_request_params.get("model")
+        )
+        if self._is_veo_model(provider_model):
+            request_data = self._veo_request_transformer.build_video_create_request(
+                prompt=prompt,
+                provider_model=provider_model,
+                video_create_optional_request_params=video_create_optional_request_params,
+                images=images,
+            )
+        else:
+            request_data = self._sora_request_transformer.build_video_create_request(
+                model=model,
+                prompt=prompt,
+                provider_model=provider_model,
+                video_create_optional_request_params=video_create_optional_request_params,
+                images=images,
+            )
 
         full_api_base = f"{api_base}/v2/videos/generations"
         return request_data, [], full_api_base
@@ -222,13 +211,33 @@ class WTAPIVideoConfig(BaseVideoConfig):
     ) -> VideoObject:
         self._raise_for_status(raw_response)
         response_data = raw_response.json()
-        task_id = response_data.get("task_id", "")
+        task_id = response_data.get("task_id") or response_data.get("id", "")
+        status_value = str(response_data.get("status", "")).strip().upper()
+        status = "queued"
+        if status_value in {"IN_PROGRESS", "PROCESSING", "RUNNING"}:
+            status = "in_progress"
+        elif status_value in {"SUCCESS", "SUCCEEDED", "COMPLETED", "DONE"}:
+            status = "completed"
+        elif status_value in {"FAILURE", "FAILED", "ERROR"}:
+            status = "failed"
+
+        if status == "failed":
+            raise self.get_error_class(
+                error_message=str(
+                    response_data.get("fail_reason")
+                    or response_data.get("error")
+                    or response_data.get("message")
+                    or "video generation failed"
+                ),
+                status_code=400,
+                headers=raw_response.headers,
+            )
 
         video_data: Dict[str, Any] = {
             "id": task_id,
             "object": "video",
-            "status": "queued",
-            "progress": 0,
+            "status": status,
+            "progress": 0 if status == "queued" else None,
             "model": model,
         }
 
@@ -361,13 +370,13 @@ class WTAPIVideoConfig(BaseVideoConfig):
         status_value = response_data.get("status")
 
         status = "queued"
-        if status_value == "NOT_START":
+        if status_value in {"NOT_START", "QUEUED", "PENDING"}:
             status = "queued"
-        elif status_value == "IN_PROGRESS":
+        elif status_value in {"IN_PROGRESS", "RUNNING", "PROCESSING"}:
             status = "in_progress"
-        elif status_value == "SUCCESS":
+        elif status_value in {"SUCCESS", "SUCCEEDED", "COMPLETED"}:
             status = "completed"
-        elif status_value == "FAILURE":
+        elif status_value in {"FAILURE", "FAILED", "ERROR"}:
             status = "failed"
 
         video_url = (response_data.get("data") or {}).get("output")
@@ -386,7 +395,7 @@ class WTAPIVideoConfig(BaseVideoConfig):
                     progress = None
 
         video_data: Dict[str, Any] = {
-            "id": response_data.get("task_id", ""),
+            "id": response_data.get("task_id") or response_data.get("id", ""),
             "object": "video",
             "status": status,
             "progress": progress,
@@ -427,11 +436,26 @@ class WTAPIVideoConfig(BaseVideoConfig):
         )
 
     def _raise_for_status(self, raw_response: httpx.Response) -> None:
-        if raw_response.status_code < 400:
-            return
-        error_message = raw_response.text
+        response_json: Dict[str, Any] = {}
+        error_message: Any = raw_response.text
         try:
-            response_json = raw_response.json()
+            parsed_json = raw_response.json()
+            if isinstance(parsed_json, dict):
+                response_json = parsed_json
+            if raw_response.status_code < 400:
+                status_val = str(response_json.get("status", "")).strip().upper()
+                if status_val in {"FAILURE", "FAILED", "ERROR"}:
+                    raise self.get_error_class(
+                        error_message=str(
+                            response_json.get("fail_reason")
+                            or response_json.get("message")
+                            or response_json.get("error")
+                            or response_json
+                        ),
+                        status_code=400,
+                        headers=raw_response.headers,
+                    )
+                return
             error_message = (
                 response_json.get("detail")
                 or response_json.get("msg")
@@ -442,7 +466,8 @@ class WTAPIVideoConfig(BaseVideoConfig):
                 or error_message
             )
         except Exception:
-            pass
+            if raw_response.status_code < 400:
+                return
         raise self.get_error_class(
             error_message=str(error_message),
             status_code=raw_response.status_code,

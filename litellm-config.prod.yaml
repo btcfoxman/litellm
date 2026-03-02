@@ -119,6 +119,96 @@ model_list:
       model: wtapi/sora2-pro-landscape-hd-15s
       api_base: "https://api.whatai.cc"
       api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3-pro-frames-wtapi
+    litellm_params:
+      model: wtapi/veo3-pro-frames
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3-fast-frames-wtapi
+    litellm_params:
+      model: wtapi/veo3-fast-frames
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo2-fast-frames-wtapi
+    litellm_params:
+      model: wtapi/veo2-fast-frames
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo2-fast-components-wtapi
+    litellm_params:
+      model: wtapi/veo2-fast-components
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3.1-wtapi
+    litellm_params:
+      model: wtapi/veo3.1
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3.1-pro-wtapi
+    litellm_params:
+      model: wtapi/veo3.1-pro
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3.1-components-wtapi
+    litellm_params:
+      model: wtapi/veo3.1-components
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo2-wtapi
+    litellm_params:
+      model: wtapi/veo2
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo2-fast-wtapi
+    litellm_params:
+      model: wtapi/veo2-fast
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo2-pro-wtapi
+    litellm_params:
+      model: wtapi/veo2-pro
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo2-pro-components-wtapi
+    litellm_params:
+      model: wtapi/veo2-pro-components
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3-wtapi
+    litellm_params:
+      model: wtapi/veo3
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3-fast-wtapi
+    litellm_params:
+      model: wtapi/veo3-fast
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3-frames-wtapi
+    litellm_params:
+      model: wtapi/veo3-frames
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3-pro-wtapi
+    litellm_params:
+      model: wtapi/veo3-pro
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3.1-fast-wtapi
+    litellm_params:
+      model: wtapi/veo3.1-fast
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3.1-4k-wtapi
+    litellm_params:
+      model: wtapi/veo3.1-4k
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
+  - model_name: veo3.1-pro-4k-wtapi
+    litellm_params:
+      model: wtapi/veo3.1-pro-4k
+      api_base: "https://api.whatai.cc"
+      api_key: os.environ/WTAPI_API_KEY
   - model_name: sora2-landscape-10s-wtapi-v1
     litellm_params:
       model: wtapi/sora2-landscape-10s
@@ -269,6 +359,96 @@ model_list:
       model: ywapi/sora2-pro-landscape-hd-15s
       api_base: "https://yunwu.ai"
       api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo2
+    litellm_params:
+      model: ywapi/veo2
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo2-fast
+    litellm_params:
+      model: ywapi/veo2-fast
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo2-fast-frames
+    litellm_params:
+      model: ywapi/veo2-fast-frames
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo2-fast-components
+    litellm_params:
+      model: ywapi/veo2-fast-components
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo2-pro
+    litellm_params:
+      model: ywapi/veo2-pro
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3
+    litellm_params:
+      model: ywapi/veo3
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3-fast
+    litellm_params:
+      model: ywapi/veo3-fast
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3-pro
+    litellm_params:
+      model: ywapi/veo3-pro
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3-pro-frames
+    litellm_params:
+      model: ywapi/veo3-pro-frames
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3-fast-frames
+    litellm_params:
+      model: ywapi/veo3-fast-frames
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3-frames
+    litellm_params:
+      model: ywapi/veo3-frames
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo2-pro-components
+    litellm_params:
+      model: ywapi/veo2-pro-components
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3.1
+    litellm_params:
+      model: ywapi/veo3.1
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3.1-fast
+    litellm_params:
+      model: ywapi/veo3.1-fast
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3.1-pro
+    litellm_params:
+      model: ywapi/veo3.1-pro
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3.1-components
+    litellm_params:
+      model: ywapi/veo3.1-components
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3.1-4k
+    litellm_params:
+      model: ywapi/veo3.1-4k
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
+  - model_name: veo3.1-pro-4k
+    litellm_params:
+      model: ywapi/veo3.1-pro-4k
+      api_base: "https://yunwu.ai"
+      api_key: os.environ/YWAPI_API_KEY
   - model_name: sora2-landscape-10s-xbsapi
     litellm_params:
       model: xbsapi/sora2-landscape-10s
@@ -316,6 +496,24 @@ litellm_settings:
 
 router_settings:
   fallbacks:
+    - veo2: ["veo2-wtapi"]
+    - veo2-fast: ["veo2-fast-wtapi"]
+    - veo2-fast-frames: ["veo2-fast-frames-wtapi"]
+    - veo2-fast-components: ["veo2-fast-components-wtapi"]
+    - veo2-pro: ["veo2-pro-wtapi"]
+    - veo2-pro-components: ["veo2-pro-components-wtapi"]
+    - veo3: ["veo3-wtapi"]
+    - veo3-fast: ["veo3-fast-wtapi"]
+    - veo3-fast-frames: ["veo3-fast-frames-wtapi"]
+    - veo3-frames: ["veo3-frames-wtapi"]
+    - veo3-pro: ["veo3-pro-wtapi"]
+    - veo3-pro-frames: ["veo3-pro-frames-wtapi"]
+    - veo3.1: ["veo3.1-wtapi"]
+    - veo3.1-fast: ["veo3.1-fast-wtapi"]
+    - veo3.1-pro: ["veo3.1-pro-wtapi"]
+    - veo3.1-components: ["veo3.1-components-wtapi"]
+    - veo3.1-4k: ["veo3.1-4k-wtapi"]
+    - veo3.1-pro-4k: ["veo3.1-pro-4k-wtapi"]
     - sora2-landscape-10s: ["sora2-landscape-10s-ywapi","sora2-landscape-10s-dyuapi","sora2-landscape-10s-s2api","sora2-landscape-10s-xbsapi"]
     - sora2-portrait-10s: ["sora2-portrait-10s-ywapi","sora2-portrait-10s-dyuapi","sora2-portrait-10s-s2api","sora2-portrait-10s-xbsapi"]
     - sora2-landscape-15s: ["sora2-landscape-15s-ywapi","sora2-landscape-15s-dyuapi","sora2-landscape-15s-xbsapi"]
