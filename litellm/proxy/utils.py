@@ -3609,6 +3609,9 @@ class PrismaClient:
         children to prevent zombie accumulation.
         """
         reaped: set = set()
+        if not hasattr(os, "waitpid") or not hasattr(os, "WNOHANG"):
+            # Windows does not expose os.WNOHANG. Skip non-blocking waitpid path.
+            return reaped
         while True:
             try:
                 pid, _ = os.waitpid(-1, os.WNOHANG)
@@ -3629,6 +3632,12 @@ class PrismaClient:
 
         Returns True if the thread was started, False on failure.
         """
+        if not hasattr(os, "waitpid") or not hasattr(os, "WNOHANG"):
+            verbose_proxy_logger.debug(
+                "waitpid/WNOHANG unsupported on this platform; skipping waitpid watch for PID %s.",
+                pid,
+            )
+            return False
         try:
             probe_pid, _ = os.waitpid(pid, os.WNOHANG)
         except ChildProcessError:
