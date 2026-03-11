@@ -103,6 +103,3 @@ STABILIZATION_TODO.md
 **/*.storageState.json
 **/coverage
 /litellm/proxy/_experimental/out/*
-
-.docker-compose.prod.yml
-.env.prod

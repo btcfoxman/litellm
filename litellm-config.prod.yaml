@@ -129,16 +129,6 @@ model_list:
       model: wtapi/veo3-fast-frames
       api_base: "https://api.whatai.cc"
       api_key: os.environ/WTAPI_API_KEY
-  - model_name: veo2-fast-frames
-    litellm_params:
-      model: wtapi/veo2-fast-frames
-      api_base: "https://api.whatai.cc"
-      api_key: os.environ/WTAPI_API_KEY
-  - model_name: veo2-fast-components
-    litellm_params:
-      model: wtapi/veo2-fast-components
-      api_base: "https://api.whatai.cc"
-      api_key: os.environ/WTAPI_API_KEY
   - model_name: veo3.1
     litellm_params:
       model: wtapi/veo3.1
@@ -152,26 +142,6 @@ model_list:
   - model_name: veo3.1-components
     litellm_params:
       model: wtapi/veo3.1-components
-      api_base: "https://api.whatai.cc"
-      api_key: os.environ/WTAPI_API_KEY
-  - model_name: veo2
-    litellm_params:
-      model: wtapi/veo2
-      api_base: "https://api.whatai.cc"
-      api_key: os.environ/WTAPI_API_KEY
-  - model_name: veo2-fast
-    litellm_params:
-      model: wtapi/veo2-fast
-      api_base: "https://api.whatai.cc"
-      api_key: os.environ/WTAPI_API_KEY
-  - model_name: veo2-pro
-    litellm_params:
-      model: wtapi/veo2-pro
-      api_base: "https://api.whatai.cc"
-      api_key: os.environ/WTAPI_API_KEY
-  - model_name: veo2-pro-components
-    litellm_params:
-      model: wtapi/veo2-pro-components
       api_base: "https://api.whatai.cc"
       api_key: os.environ/WTAPI_API_KEY
   - model_name: veo3
@@ -359,31 +329,6 @@ model_list:
       model: ywapi/sora2-pro-landscape-hd-15s
       api_base: "https://yunwu.ai"
       api_key: os.environ/YWAPI_API_KEY
-  - model_name: veo2-ywapi
-    litellm_params:
-      model: ywapi/veo2
-      api_base: "https://yunwu.ai"
-      api_key: os.environ/YWAPI_API_KEY
-  - model_name: veo2-fast-ywapi
-    litellm_params:
-      model: ywapi/veo2-fast
-      api_base: "https://yunwu.ai"
-      api_key: os.environ/YWAPI_API_KEY
-  - model_name: veo2-fast-frames-ywapi
-    litellm_params:
-      model: ywapi/veo2-fast-frames
-      api_base: "https://yunwu.ai"
-      api_key: os.environ/YWAPI_API_KEY
-  - model_name: veo2-fast-components-ywapi
-    litellm_params:
-      model: ywapi/veo2-fast-components
-      api_base: "https://yunwu.ai"
-      api_key: os.environ/YWAPI_API_KEY
-  - model_name: veo2-pro-ywapi
-    litellm_params:
-      model: ywapi/veo2-pro
-      api_base: "https://yunwu.ai"
-      api_key: os.environ/YWAPI_API_KEY
   - model_name: veo3-ywapi
     litellm_params:
       model: ywapi/veo3
@@ -412,11 +357,6 @@ model_list:
   - model_name: veo3-frames-ywapi
     litellm_params:
       model: ywapi/veo3-frames
-      api_base: "https://yunwu.ai"
-      api_key: os.environ/YWAPI_API_KEY
-  - model_name: veo2-pro-components-ywapi
-    litellm_params:
-      model: ywapi/veo2-pro-components
       api_base: "https://yunwu.ai"
       api_key: os.environ/YWAPI_API_KEY
   - model_name: veo3.1-ywapi
@@ -496,12 +436,6 @@ litellm_settings:
 
 router_settings:
   fallbacks:
-    - veo2: ["veo2-ywapi"]
-    - veo2-fast: ["veo2-fast-ywapi"]
-    - veo2-fast-frames: ["veo2-fast-frames-ywapi"]
-    - veo2-fast-components: ["veo2-fast-components-ywapi"]
-    - veo2-pro: ["veo2-pro-ywapi"]
-    - veo2-pro-components: ["veo2-pro-components-ywapi"]
     - veo3: ["veo3-ywapi"]
     - veo3-fast: ["veo3-fast-ywapi"]
     - veo3-fast-frames: ["veo3-fast-frames-ywapi"]

@@ -2,6 +2,8 @@ from typing import Any, Dict, List, Union
 
 
 class YWAPIVeoVideoRequestTransformer:
+    _UNSUPPORTED_MODEL_PREFIXES = ("veo2",)
+
     @staticmethod
     def get_supported_openai_params() -> List[str]:
         return [
@@ -22,7 +24,9 @@ class YWAPIVeoVideoRequestTransformer:
     @staticmethod
     def infer_provider_model(model: str) -> str:
         model_token = YWAPIVeoVideoRequestTransformer._get_model_token(model).lower()
-        return model_token.replace("_", "-")
+        model_token = model_token.replace("_", "-")
+        YWAPIVeoVideoRequestTransformer._validate_supported_model(model_token)
+        return model_token
 
     @staticmethod
     def is_veo_provider_model(model: str) -> bool:
@@ -64,6 +68,7 @@ class YWAPIVeoVideoRequestTransformer:
         video_create_optional_request_params: Dict[str, Any],
         images: List[str],
     ) -> Dict[str, Any]:
+        YWAPIVeoVideoRequestTransformer._validate_supported_model(provider_model)
         aspect_ratio = YWAPIVeoVideoRequestTransformer._normalize_aspect_ratio(
             video_create_optional_request_params.get("aspect_ratio")
             or video_create_optional_request_params.get("orientation"),
@@ -144,3 +149,11 @@ class YWAPIVeoVideoRequestTransformer:
                 return False
             return value.strip()
         return fallback
+
+    @staticmethod
+    def _validate_supported_model(model: str) -> None:
+        model_token = YWAPIVeoVideoRequestTransformer._get_model_token(model).strip().lower()
+        if model_token.startswith(YWAPIVeoVideoRequestTransformer._UNSUPPORTED_MODEL_PREFIXES):
+            raise ValueError(
+                "YWAPI veo2 系列模型已下线，请改用 veo3/veo3.1 系列模型。"
+            )

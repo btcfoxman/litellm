@@ -24,8 +24,8 @@ class YWAPISoraVideoRequestTransformer:
     def infer_provider_model(model: str) -> str:
         model_token = YWAPISoraVideoRequestTransformer._get_model_token(model).lower()
         if "pro" in model_token:
-            return "sora-2-pro"
-        return "sora-2"
+            return "sora-2-pro-all"
+        return "sora-2-all"
 
     @staticmethod
     def map_openai_params(

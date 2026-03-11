@@ -400,6 +400,7 @@ def image_generation(  # noqa: PLR0915
             litellm.LlmProviders.RECRAFT,
             litellm.LlmProviders.AIML,
             litellm.LlmProviders.GEMINI,
+            litellm.LlmProviders.FLOW2API,
             litellm.LlmProviders.FAL_AI,
             litellm.LlmProviders.STABILITY,
             litellm.LlmProviders.RUNWAYML,

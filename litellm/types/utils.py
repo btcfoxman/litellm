@@ -3210,6 +3210,7 @@ class LlmProviders(str, Enum):
     NANOGPT = "nano-gpt"
     POE = "poe"
     CHUTES = "chutes"
+    FLOW2API = "flow2api"
     DYUAPI = "dyuapi"
     S2API = "s2api"
     WTAPI = "wtapi"

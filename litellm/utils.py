@@ -8732,6 +8732,12 @@ class ProviderConfigManager:
             )
 
             return get_openrouter_image_generation_config(model)
+        elif LlmProviders.FLOW2API == provider:
+            from litellm.llms.flow2api.image_generation.transformation import (
+                Flow2APIImageGenerationConfig,
+            )
+
+            return Flow2APIImageGenerationConfig()
         return None
 
     @staticmethod
@@ -8759,6 +8765,12 @@ class ProviderConfigManager:
             from litellm.llms.runwayml.videos.transformation import RunwayMLVideoConfig
 
             return RunwayMLVideoConfig()
+        elif LlmProviders.FLOW2API == provider:
+            from litellm.llms.flow2api.videos.veo_transformation import (
+                Flow2APIVideoConfig,
+            )
+
+            return Flow2APIVideoConfig()
         elif LlmProviders.DYUAPI == provider:
             from litellm.llms.dyuapi.videos.transformation import DyuapiVideoConfig
 

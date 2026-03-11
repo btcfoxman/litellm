@@ -2,6 +2,8 @@ from typing import Any, Dict, List, Optional
 
 
 class WTAPIVeoVideoRequestTransformer:
+    _UNSUPPORTED_MODEL_PREFIXES = ("veo2",)
+
     @staticmethod
     def get_supported_openai_params() -> List[str]:
         return [
@@ -20,7 +22,9 @@ class WTAPIVeoVideoRequestTransformer:
 
     @staticmethod
     def infer_provider_model(model: str) -> str:
-        return WTAPIVeoVideoRequestTransformer._get_model_token(model)
+        model_token = WTAPIVeoVideoRequestTransformer._get_model_token(model)
+        WTAPIVeoVideoRequestTransformer._validate_supported_model(model_token)
+        return model_token
 
     @staticmethod
     def is_veo_provider_model(model: str) -> bool:
@@ -62,6 +66,7 @@ class WTAPIVeoVideoRequestTransformer:
         video_create_optional_request_params: Dict[str, Any],
         images: List[str],
     ) -> Dict[str, Any]:
+        WTAPIVeoVideoRequestTransformer._validate_supported_model(provider_model)
         request_data: Dict[str, Any] = {
             "prompt": prompt,
             "model": provider_model,
@@ -118,3 +123,11 @@ class WTAPIVeoVideoRequestTransformer:
         if parsed in {"16:9", "landscape", "horizontal"}:
             return "16:9"
         return str(value)
+
+    @staticmethod
+    def _validate_supported_model(model: str) -> None:
+        model_token = WTAPIVeoVideoRequestTransformer._get_model_token(model).strip().lower()
+        if model_token.startswith(WTAPIVeoVideoRequestTransformer._UNSUPPORTED_MODEL_PREFIXES):
+            raise ValueError(
+                "WTAPI veo2 系列模型已下线，请改用 veo3/veo3.1 系列模型。"
+            )
