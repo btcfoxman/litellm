@@ -8795,6 +8795,10 @@ class ProviderConfigManager:
             from litellm.llms.xbsapi.videos.transformation import XBSAPIVideoConfig
 
             return XBSAPIVideoConfig()
+        elif LlmProviders.AIAPI == provider:
+            from litellm.llms.aiapi.videos.transformation import AIAPIVideoConfig
+
+            return AIAPIVideoConfig()
         return None
 
     @staticmethod

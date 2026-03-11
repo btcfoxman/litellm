@@ -3217,6 +3217,7 @@ class LlmProviders(str, Enum):
     GGAPI = "ggapi"
     YWAPI = "ywapi"
     XBSAPI = "xbsapi"
+    AIAPI = "aiapi"
     XIAOMI_MIMO = "xiaomi_mimo"
     LITELLM_AGENT = "litellm_agent"
     CURSOR = "cursor"
