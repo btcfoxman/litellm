@@ -1,4 +1,5 @@
 import base64
+import json
 import re
 import time
 from io import BufferedReader
@@ -147,7 +148,8 @@ class Flow2APIVideoConfig(BaseVideoConfig):
                     ),
                 }
             ],
-            "stream": False,
+            # flow2api returns real generation results only in stream mode.
+            "stream": True,
         }
         if video_create_optional_request_params.get("size"):
             request_payload["size"] = video_create_optional_request_params["size"]
@@ -167,8 +169,7 @@ class Flow2APIVideoConfig(BaseVideoConfig):
         request_data: Optional[Dict] = None,
     ) -> VideoObject:
         self._raise_for_status(raw_response)
-        response_json = raw_response.json()
-        content = self._extract_choice_content(response_json)
+        response_json, content = self._extract_response_payload_and_content(raw_response)
         video_url = self._extract_video_url(content)
         if not video_url:
             raise self.get_error_class(
@@ -378,9 +379,74 @@ class Flow2APIVideoConfig(BaseVideoConfig):
                     return url
         return None
 
+    def _extract_response_payload_and_content(
+        self, raw_response: httpx.Response
+    ) -> Tuple[Dict[str, Any], str]:
+        raw_text = raw_response.text or ""
+        sse_content = self._extract_content_from_sse(raw_text)
+        if sse_content:
+            return {"sse": True}, sse_content
+
+        response_json = raw_response.json()
+        return response_json, self._extract_choice_content(response_json)
+
+    def _extract_content_from_sse(self, raw_text: str) -> str:
+        if "data:" not in raw_text:
+            return ""
+
+        content_parts: List[str] = []
+        for line in raw_text.splitlines():
+            stripped = line.strip()
+            if not stripped.startswith("data:"):
+                continue
+            data_segment = stripped[5:].strip()
+            if not data_segment or data_segment == "[DONE]":
+                continue
+
+            try:
+                chunk_json = json.loads(data_segment)
+            except Exception:
+                continue
+
+            choices = chunk_json.get("choices")
+            if not isinstance(choices, list) or len(choices) == 0:
+                continue
+            choice = choices[0]
+            if not isinstance(choice, dict):
+                continue
+
+            delta = choice.get("delta")
+            if isinstance(delta, dict):
+                delta_content = delta.get("content")
+                if isinstance(delta_content, str):
+                    content_parts.append(delta_content)
+
+            message = choice.get("message")
+            if isinstance(message, dict):
+                message_content = message.get("content")
+                if isinstance(message_content, str):
+                    content_parts.append(message_content)
+                elif isinstance(message_content, list):
+                    for part in message_content:
+                        if isinstance(part, dict):
+                            text = part.get("text")
+                            if isinstance(text, str):
+                                content_parts.append(text)
+
+        return "".join(content_parts).strip()
+
     def _to_image_url(self, image: Any) -> Optional[str]:
         if image is None:
             return None
+
+        if isinstance(image, dict):
+            dict_url = image.get("url")
+            if not isinstance(dict_url, str):
+                nested_image = image.get("image_url")
+                if isinstance(nested_image, dict):
+                    dict_url = nested_image.get("url")
+            if isinstance(dict_url, str):
+                return self._to_image_url(dict_url)
 
         if isinstance(image, str):
             if image.startswith(("http://", "https://", "data:image")):
