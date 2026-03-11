@@ -390,6 +390,7 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
             ResponseOutputMessage,
             ResponseReasoningItem,
         )
+        from openai.types.responses.response_output_item import ResponseApplyPatchToolCall
 
         from litellm.types.utils import Choices, Message
 
@@ -444,6 +445,18 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
                         tool_call_item=item,
                         index=tool_call_index,
                     )
+                )
+                accumulated_tool_calls.append(tool_call_dict)
+                tool_call_index += 1
+
+            elif isinstance(item, ResponseApplyPatchToolCall):
+                from litellm.responses.litellm_completion_transformation.transformation import (
+                    LiteLLMCompletionResponsesConfig,
+                )
+
+                tool_call_dict = LiteLLMCompletionResponsesConfig.convert_apply_patch_tool_call_to_chat_completion_tool_call(
+                    tool_call_item=item,
+                    index=tool_call_index,
                 )
                 accumulated_tool_calls.append(tool_call_dict)
                 tool_call_index += 1
@@ -951,9 +964,10 @@ class OpenAiResponsesToChatCompletionStreamIterator(BaseModelResponseIterator):
                 if provider_specific_fields:
                     function_chunk["provider_specific_fields"] = provider_specific_fields
 
+                tool_call_index = parsed_chunk.get("output_index", 0)
                 tool_call_chunk = ChatCompletionToolCallChunk(
                     id=output_item.get("call_id"),
-                    index=0,
+                    index=tool_call_index,
                     type="function",
                     function=function_chunk,
                 )
@@ -974,6 +988,7 @@ class OpenAiResponsesToChatCompletionStreamIterator(BaseModelResponseIterator):
         elif event_type == "response.function_call_arguments.delta":
             content_part: Optional[str] = parsed_chunk.get("delta", None)
             if content_part:
+                tool_call_index = parsed_chunk.get("output_index", 0)
                 return ModelResponseStream(
                     choices=[
                         StreamingChoices(
@@ -982,7 +997,7 @@ class OpenAiResponsesToChatCompletionStreamIterator(BaseModelResponseIterator):
                                 tool_calls=[
                                     ChatCompletionToolCallChunk(
                                         id=None,
-                                        index=0,
+                                        index=tool_call_index,
                                         type="function",
                                         function=ChatCompletionToolCallFunctionChunk(name=None, arguments=content_part),
                                     )
@@ -1014,9 +1029,10 @@ class OpenAiResponsesToChatCompletionStreamIterator(BaseModelResponseIterator):
                 if provider_specific_fields:
                     function_chunk["provider_specific_fields"] = provider_specific_fields
 
+                tool_call_index = parsed_chunk.get("output_index", 0)
                 tool_call_chunk = ChatCompletionToolCallChunk(
                     id=output_item.get("call_id"),
-                    index=0,
+                    index=tool_call_index,
                     type="function",
                     function=function_chunk,
                 )
@@ -1025,12 +1041,16 @@ class OpenAiResponsesToChatCompletionStreamIterator(BaseModelResponseIterator):
                 if provider_specific_fields:
                     tool_call_chunk.provider_specific_fields = provider_specific_fields  # type: ignore
 
+                # Do NOT emit finish_reason here — response.completed handles the terminal
+                # finish_reason. Emitting "tool_calls" here would prematurely terminate
+                # the stream before subsequent tool calls arrive (same fix as #17246 for
+                # the message-type branch).
                 return ModelResponseStream(
                     choices=[
                         StreamingChoices(
                             index=0,
-                            delta=Delta(tool_calls=[tool_call_chunk]),
-                            finish_reason="tool_calls",
+                            delta=Delta(),
+                            finish_reason=None,
                         )
                     ]
                 )
@@ -1088,6 +1108,12 @@ class OpenAiResponsesToChatCompletionStreamIterator(BaseModelResponseIterator):
 
             finish_reason = "tool_calls" if has_function_calls else "stop"
 
+            usage = None
+            if response_data.get("usage"):
+                from litellm.responses.utils import ResponseAPILoggingUtils
+                usage = ResponseAPILoggingUtils._transform_response_api_usage_to_chat_usage(
+                    response_data.get("usage")
+                )
             return ModelResponseStream(
                 choices=[
                     StreamingChoices(
@@ -1095,7 +1121,8 @@ class OpenAiResponsesToChatCompletionStreamIterator(BaseModelResponseIterator):
                         delta=Delta(content=""),
                         finish_reason=finish_reason,
                     )
-                ]
+                ],
+                usage=usage
             )
         else:
             pass
