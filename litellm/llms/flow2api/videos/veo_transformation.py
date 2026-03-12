@@ -56,6 +56,7 @@ class Flow2APIVideoConfig(BaseVideoConfig):
             "image_url",
             "seconds",
             "size",
+            "aspect_ratio",
             "user",
         ]
 

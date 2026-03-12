@@ -120,6 +120,16 @@ def test_flow2api_video_i2v_portrait_fl_request_has_two_images():
     assert content[2]["image_url"]["url"] == "https://example.com/frame-end.jpg"
 
 
+def test_flow2api_video_accepts_openai_aspect_ratio_param():
+    cfg = Flow2APIVideoConfig()
+    mapped = cfg.map_openai_params(
+        video_create_optional_params={"aspect_ratio": "9:16"},
+        model="veo_3_1_i2v_s_fast_portrait_fl",
+        drop_params=False,
+    )
+    assert mapped["aspect_ratio"] == "9:16"
+
+
 def test_flow2api_video_sse_response_parsed_to_video_url():
     cfg = Flow2APIVideoConfig()
     sse_body = "\n".join(
