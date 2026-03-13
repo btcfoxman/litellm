@@ -17,6 +17,7 @@ services:
     environment:
       DATABASE_URL: "postgresql://llmproxy:dbpassword9090@db:5432/litellm"
       STORE_MODEL_IN_DB: "True" # allows adding models to proxy via UI
+      LITELLM_LOCAL_MODEL_COST_MAP: "True" # force local model cost map, skip GitHub fetch
     env_file:
       - .env # Load local .env file
     depends_on:
