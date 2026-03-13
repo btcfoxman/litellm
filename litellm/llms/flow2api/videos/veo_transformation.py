@@ -55,6 +55,7 @@ class Flow2APIVideoConfig(BaseVideoConfig):
             "input_reference",
             "image_url",
             "seconds",
+            "duration",
             "size",
             "aspect_ratio",
             "user",
@@ -72,10 +73,9 @@ class Flow2APIVideoConfig(BaseVideoConfig):
         for key, value in video_create_optional_params.items():
             if key in supported:
                 mapped[key] = value
-            elif not drop_params:
-                raise ValueError(
-                    f"Unsupported OpenAI video param `{key}` for flow2api."
-                )
+            else:
+                # Keep flow2api provider permissive: ignore non-standard orchestration params.
+                continue
         return mapped
 
     def validate_environment(
@@ -152,11 +152,21 @@ class Flow2APIVideoConfig(BaseVideoConfig):
             # flow2api returns real generation results only in stream mode.
             "stream": True,
         }
-        if video_create_optional_request_params.get("size"):
-            request_payload["size"] = video_create_optional_request_params["size"]
-        if video_create_optional_request_params.get("seconds"):
-            request_payload["seconds"] = str(
-                video_create_optional_request_params["seconds"]
+        size_value = video_create_optional_request_params.get("size")
+        if size_value is not None:
+            normalized_size = str(size_value).strip()
+            lowered_size = normalized_size.lower()
+            if lowered_size in {"sd", "hd", "fhd", "2k", "4k"}:
+                normalized_size = lowered_size
+            request_payload["size"] = normalized_size
+        seconds_value = video_create_optional_request_params.get("seconds")
+        if seconds_value is None:
+            seconds_value = video_create_optional_request_params.get("duration")
+        if seconds_value is not None:
+            request_payload["seconds"] = str(seconds_value)
+        if video_create_optional_request_params.get("aspect_ratio") is not None:
+            request_payload["aspect_ratio"] = str(
+                video_create_optional_request_params["aspect_ratio"]
             )
 
         return request_payload, [], f"{api_base}/chat/completions"
@@ -189,7 +199,10 @@ class Flow2APIVideoConfig(BaseVideoConfig):
             "progress": 100,
             "model": model,
             "video_url": video_url,
-            "seconds": self._safe_to_str(request_data, "seconds"),
+            "seconds": (
+                self._safe_to_str(request_data, "seconds")
+                or self._safe_to_str(request_data, "duration")
+            ),
             "size": self._safe_to_str(request_data, "size"),
         }
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]

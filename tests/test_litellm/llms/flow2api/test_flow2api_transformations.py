@@ -130,6 +130,43 @@ def test_flow2api_video_accepts_openai_aspect_ratio_param():
     assert mapped["aspect_ratio"] == "9:16"
 
 
+def test_flow2api_video_accepts_openai_duration_param():
+    cfg = Flow2APIVideoConfig()
+    mapped = cfg.map_openai_params(
+        video_create_optional_params={"duration": "8"},
+        model="veo_3_1_i2v_s_fast_portrait_fl",
+        drop_params=False,
+    )
+    assert mapped["duration"] == "8"
+
+
+def test_flow2api_video_duration_maps_to_seconds_in_request():
+    cfg = Flow2APIVideoConfig()
+    request_payload, _, _ = cfg.transform_video_create_request(
+        model="veo_3_1_t2v_fast_landscape",
+        prompt="a running cat",
+        api_base="http://127.0.0.1:4020/v1",
+        video_create_optional_request_params={"duration": 10},
+        litellm_params=MagicMock(),
+        headers={},
+    )
+    assert request_payload["seconds"] == "10"
+
+
+def test_flow2api_video_ignores_non_standard_params():
+    cfg = Flow2APIVideoConfig()
+    mapped = cfg.map_openai_params(
+        video_create_optional_params={
+            "duration_band": "medium",
+            "video_provider": "sora",
+            "generation_plan": {"strategy": "single"},
+        },
+        model="veo_3_1_i2v_s_fast_portrait_fl",
+        drop_params=False,
+    )
+    assert mapped == {}
+
+
 def test_flow2api_video_sse_response_parsed_to_video_url():
     cfg = Flow2APIVideoConfig()
     sse_body = "\n".join(
