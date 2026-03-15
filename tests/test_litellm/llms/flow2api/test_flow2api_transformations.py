@@ -57,6 +57,25 @@ def test_flow2api_image_sse_response_parsed_to_url():
     assert result.data[0].url == "https://example.com/a.png"
 
 
+def test_flow2api_image_plain_text_response_parsed_to_url():
+    cfg = Flow2APIImageGenerationConfig()
+    raw_response = _make_response(
+        "![Generated Image](https://example.com/plain.png)"
+    )
+    result = cfg.transform_image_generation_response(
+        model="gemini-3.1-flash-image-landscape",
+        raw_response=raw_response,
+        model_response=ImageResponse(),
+        logging_obj=MagicMock(),
+        request_data={"prompt": "draw an image"},
+        optional_params={},
+        litellm_params={},
+        encoding=None,
+    )
+    assert result.data is not None
+    assert result.data[0].url == "https://example.com/plain.png"
+
+
 def test_flow2api_image_portrait_2k_request_uses_target_model():
     cfg = Flow2APIImageGenerationConfig()
     payload = cfg.transform_image_generation_request(

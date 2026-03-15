@@ -248,8 +248,21 @@ class Flow2APIImageGenerationConfig(BaseImageGenerationConfig):
         if sse_content:
             return {"sse": True}, sse_content
 
-        response_json = raw_response.json()
-        return response_json, self._extract_choice_content(response_json)
+        stripped_text = raw_text.strip()
+        if not stripped_text:
+            raise self.get_error_class(
+                error_message="flow2api returned an empty response body.",
+                status_code=502,
+                headers=raw_response.headers,
+            )
+
+        # Some flow2api deployments return plain text/markdown instead of JSON.
+        # Keep raw text so markdown/html URL extraction can still succeed.
+        try:
+            response_json = raw_response.json()
+            return response_json, self._extract_choice_content(response_json)
+        except Exception:
+            return {"raw_text": True}, stripped_text
 
     def _extract_content_from_sse(self, raw_text: str) -> str:
         if "data:" not in raw_text:
