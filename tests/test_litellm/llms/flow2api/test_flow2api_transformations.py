@@ -140,6 +140,42 @@ def test_flow2api_video_accepts_openai_duration_param():
     assert mapped["duration"] == "8"
 
 
+def test_flow2api_video_accepts_end_image_aliases():
+    cfg = Flow2APIVideoConfig()
+    mapped = cfg.map_openai_params(
+        video_create_optional_params={
+            "image_url": "https://example.com/frame-start.jpg",
+            "end_image_url": "https://example.com/frame-end.jpg",
+            "last_image_url": "https://example.com/frame-end-last.jpg",
+        },
+        model="veo_3_1_i2v_s_fast_portrait_fl",
+        drop_params=False,
+    )
+    assert mapped["image_url"] == "https://example.com/frame-start.jpg"
+    assert mapped["end_image_url"] == "https://example.com/frame-end.jpg"
+    assert mapped["last_image_url"] == "https://example.com/frame-end-last.jpg"
+
+
+def test_flow2api_video_request_uses_image_and_end_image():
+    cfg = Flow2APIVideoConfig()
+    request_payload, _, _ = cfg.transform_video_create_request(
+        model="veo_3_1_i2v_s_fast_portrait_fl",
+        prompt="transition between first and last frame",
+        api_base="http://127.0.0.1:4020/v1",
+        video_create_optional_request_params={
+            "image_url": "https://example.com/frame-start.jpg",
+            "end_image_url": "https://example.com/frame-end.jpg",
+        },
+        litellm_params=MagicMock(),
+        headers={},
+    )
+    content = request_payload["messages"][0]["content"]
+    assert isinstance(content, list)
+    assert len(content) == 3
+    assert content[1]["image_url"]["url"] == "https://example.com/frame-start.jpg"
+    assert content[2]["image_url"]["url"] == "https://example.com/frame-end.jpg"
+
+
 def test_flow2api_video_duration_maps_to_seconds_in_request():
     cfg = Flow2APIVideoConfig()
     request_payload, _, _ = cfg.transform_video_create_request(
@@ -185,3 +221,18 @@ def test_flow2api_video_sse_response_parsed_to_video_url():
     )
     assert result.status == "completed"
     assert result.video_url == "https://example.com/v.mp4"
+
+
+def test_flow2api_video_plain_text_response_parsed_to_video_url():
+    cfg = Flow2APIVideoConfig()
+    raw_response = _make_response(
+        "```html\n<video src='https://example.com/raw.mp4' controls></video>\n```"
+    )
+    result = cfg.transform_video_create_response(
+        model="veo_3_1_t2v_fast_landscape",
+        raw_response=raw_response,
+        logging_obj=MagicMock(),
+        request_data={},
+    )
+    assert result.status == "completed"
+    assert result.video_url == "https://example.com/raw.mp4"

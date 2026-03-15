@@ -54,6 +54,8 @@ class Flow2APIVideoConfig(BaseVideoConfig):
             "prompt",
             "input_reference",
             "image_url",
+            "end_image_url",
+            "last_image_url",
             "seconds",
             "duration",
             "size",
@@ -127,7 +129,19 @@ class Flow2APIVideoConfig(BaseVideoConfig):
 
         input_reference = video_create_optional_request_params.get("input_reference")
         image_url = video_create_optional_request_params.get("image_url")
-        source_images = input_reference if input_reference is not None else image_url
+        end_image_url = video_create_optional_request_params.get("end_image_url")
+        if end_image_url is None:
+            end_image_url = video_create_optional_request_params.get("last_image_url")
+
+        if input_reference is not None:
+            source_images: Any = input_reference
+        else:
+            source_images_list: List[Any] = []
+            if image_url is not None:
+                source_images_list.append(image_url)
+            if end_image_url is not None:
+                source_images_list.append(end_image_url)
+            source_images = source_images_list if source_images_list else None
 
         if source_images is not None:
             if not isinstance(source_images, list):
@@ -401,8 +415,21 @@ class Flow2APIVideoConfig(BaseVideoConfig):
         if sse_content:
             return {"sse": True}, sse_content
 
-        response_json = raw_response.json()
-        return response_json, self._extract_choice_content(response_json)
+        stripped_text = raw_text.strip()
+        if not stripped_text:
+            raise self.get_error_class(
+                error_message="flow2api returned an empty response body.",
+                status_code=502,
+                headers=raw_response.headers,
+            )
+
+        # Some flow2api deployments return plain text/markdown instead of JSON.
+        # Keep the raw content path so URL extraction still works.
+        try:
+            response_json = raw_response.json()
+            return response_json, self._extract_choice_content(response_json)
+        except Exception:
+            return {"raw_text": True}, stripped_text
 
     def _extract_content_from_sse(self, raw_text: str) -> str:
         if "data:" not in raw_text:
