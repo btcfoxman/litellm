@@ -3079,6 +3079,19 @@ def get_optional_params_image_gen(
         supported_params = provider_config.get_supported_openai_params(
             model=model or ""
         )
+        # Include provider-supported image params that are not in OpenAI defaults
+        # (e.g. input_reference/image_url for custom providers like flow2api).
+        for param_key in supported_params:
+            if (
+                param_key not in default_params
+                and param_key in passed_params
+                and passed_params[param_key] is not None
+                and _should_drop_param(
+                    k=param_key, additional_drop_params=additional_drop_params
+                )
+                is False
+            ):
+                non_default_params[param_key] = passed_params[param_key]
         _check_valid_arg(supported_params=supported_params)
         optional_params = provider_config.map_openai_params(
             non_default_params=non_default_params,

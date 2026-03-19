@@ -11,6 +11,7 @@ from litellm.llms.flow2api.image_generation.transformation import (
 )
 from litellm.llms.flow2api.videos.veo_transformation import Flow2APIVideoConfig
 from litellm.types.utils import ImageResponse
+from litellm.utils import get_optional_params_image_gen
 
 
 def _make_response(body: str) -> httpx.Response:
@@ -47,6 +48,17 @@ def test_flow2api_image_request_includes_image_url_reference():
     assert len(content) == 2
     assert content[1]["type"] == "image_url"
     assert content[1]["image_url"]["url"] == "https://example.com/input.jpg"
+
+
+def test_flow2api_optional_params_keeps_input_reference():
+    cfg = Flow2APIImageGenerationConfig()
+    optional_params = get_optional_params_image_gen(
+        model="gemini-3.1-flash-image-landscape",
+        custom_llm_provider="flow2api",
+        provider_config=cfg,
+        input_reference=["data:image/jpeg;base64,ZmFrZQ=="],
+    )
+    assert optional_params["input_reference"] == ["data:image/jpeg;base64,ZmFrZQ=="]
 
 
 def test_flow2api_image_sse_response_parsed_to_url():
