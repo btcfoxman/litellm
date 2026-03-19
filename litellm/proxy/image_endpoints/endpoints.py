@@ -82,6 +82,39 @@ def _extract_image_urls_from_messages(messages: Any) -> List[str]:
     return image_urls
 
 
+def _sanitize_image_ref_for_hook(value: Any) -> Any:
+    """
+    Avoid passing giant data URLs into pre-call hooks/guardrails to prevent
+    expensive payload processing. Original values are restored immediately after.
+    """
+    if isinstance(value, str):
+        if value.startswith("data:image"):
+            return "data:image/*;base64,<redacted>"
+        return value
+    if isinstance(value, list):
+        return [_sanitize_image_ref_for_hook(v) for v in value]
+    if isinstance(value, dict):
+        sanitized = dict(value)
+        if "url" in sanitized:
+            sanitized["url"] = _sanitize_image_ref_for_hook(sanitized.get("url"))
+        if "image_url" in sanitized:
+            sanitized["image_url"] = _sanitize_image_ref_for_hook(
+                sanitized.get("image_url")
+            )
+        return sanitized
+    return value
+
+
+def _contains_redacted_image_ref(value: Any) -> bool:
+    if isinstance(value, str):
+        return value == "data:image/*;base64,<redacted>"
+    if isinstance(value, list):
+        return any(_contains_redacted_image_ref(v) for v in value)
+    if isinstance(value, dict):
+        return any(_contains_redacted_image_ref(v) for v in value.values())
+    return False
+
+
 @router.post(
     "/v1/images/generations",
     dependencies=[Depends(user_api_key_auth)],
@@ -163,11 +196,20 @@ async def image_generation(
                 "content": prompt_value,
             }
             data["messages"] = [user_message]
+        hook_safe_data = dict(data)
+        for key in ("input_reference", "image", "image_url"):
+            if key in hook_safe_data:
+                hook_safe_data[key] = _sanitize_image_ref_for_hook(hook_safe_data[key])
+
         data = await proxy_logging_obj.pre_call_hook(
-            user_api_key_dict=user_api_key_dict, data=data, call_type="image_generation"
+            user_api_key_dict=user_api_key_dict,
+            data=hook_safe_data,
+            call_type="image_generation",
         )
         for key, value in original_image_refs.items():
-            if value is not None and data.get(key) is None:
+            if value is not None and (
+                data.get(key) is None or _contains_redacted_image_ref(data.get(key))
+            ):
                 data[key] = value
 
         messages = data.get("messages")
