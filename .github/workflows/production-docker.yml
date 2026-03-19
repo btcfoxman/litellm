@@ -112,7 +112,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
           timeout: 60s
-          command_timeout: 40m
+          command_timeout: 60m
           envs: DEPLOY_PATH,GHCR_TOKEN,GHCR_USERNAME,DEPLOY_SERVICE,ALI_ENABLE,ALI_USERNAME,ALI_PASSWORD
           script: |
             set -e

@@ -33,6 +33,22 @@ def test_flow2api_image_request_uses_stream_mode():
     assert payload["stream"] is True
 
 
+def test_flow2api_image_request_includes_image_url_reference():
+    cfg = Flow2APIImageGenerationConfig()
+    payload = cfg.transform_image_generation_request(
+        model="gemini-3.1-flash-image-landscape",
+        prompt="transform this image",
+        optional_params={"image_url": "https://example.com/input.jpg"},
+        litellm_params={},
+        headers={},
+    )
+    content = payload["messages"][0]["content"]
+    assert isinstance(content, list)
+    assert len(content) == 2
+    assert content[1]["type"] == "image_url"
+    assert content[1]["image_url"]["url"] == "https://example.com/input.jpg"
+
+
 def test_flow2api_image_sse_response_parsed_to_url():
     cfg = Flow2APIImageGenerationConfig()
     sse_body = "\n".join(

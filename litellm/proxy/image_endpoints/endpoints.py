@@ -1,6 +1,6 @@
 import asyncio
 import traceback
-from typing import List
+from typing import Any, List
 
 import orjson
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, status
@@ -44,6 +44,42 @@ async def batch_to_bytesio(
     if not uploads:
         return None
     return [await uploadfile_to_bytesio(u) for u in uploads]
+
+
+def _extract_image_urls_from_messages(messages: Any) -> List[str]:
+    """
+    Extract image URLs/data-URLs from chat-style message blocks so /images/generations
+    can forward them as provider-specific image refs (e.g. flow2api input_reference).
+    """
+    if not isinstance(messages, list):
+        return []
+
+    image_urls: List[str] = []
+    for message in messages:
+        if not isinstance(message, dict):
+            continue
+        content = message.get("content")
+        if not isinstance(content, list):
+            continue
+        for item in content:
+            if not isinstance(item, dict):
+                continue
+            item_type = item.get("type")
+            if item_type not in ("image_url", "input_image"):
+                continue
+
+            item_image = item.get("image_url")
+            if isinstance(item_image, dict):
+                url = item_image.get("url")
+            elif isinstance(item_image, str):
+                url = item_image
+            else:
+                url = item.get("url")
+
+            if isinstance(url, str) and url.strip():
+                image_urls.append(url.strip())
+
+    return image_urls
 
 
 @router.post(
@@ -126,7 +162,13 @@ async def image_generation(
 
         messages = data.get("messages")
         if isinstance(messages, list) and messages:
+            extracted_image_urls = _extract_image_urls_from_messages(messages)
             data["prompt"] = get_str_from_messages(messages)
+            has_existing_images = any(
+                data.get(key) is not None for key in ("input_reference", "image", "image_url")
+            )
+            if extracted_image_urls and not has_existing_images:
+                data["input_reference"] = extracted_image_urls
         data.pop("messages", None)
 
         ## ROUTE TO CORRECT ENDPOINT ##
