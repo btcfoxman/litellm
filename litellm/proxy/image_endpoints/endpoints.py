@@ -147,6 +147,13 @@ async def image_generation(
         if data["model"] in litellm.model_alias_map:
             data["model"] = litellm.model_alias_map[data["model"]]
 
+        # Keep original image refs in case a pre-call hook rewrites request payload.
+        original_image_refs = {
+            "input_reference": data.get("input_reference"),
+            "image": data.get("image"),
+            "image_url": data.get("image_url"),
+        }
+
         ### CALL HOOKS ### - modify incoming data / reject request before calling the model
         prompt_value = data.get("prompt")
         if prompt_value is not None:
@@ -159,6 +166,9 @@ async def image_generation(
         data = await proxy_logging_obj.pre_call_hook(
             user_api_key_dict=user_api_key_dict, data=data, call_type="image_generation"
         )
+        for key, value in original_image_refs.items():
+            if value is not None and data.get(key) is None:
+                data[key] = value
 
         messages = data.get("messages")
         if isinstance(messages, list) and messages:
