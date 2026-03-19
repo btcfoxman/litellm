@@ -2,6 +2,11 @@ on:
   push:
     branches:
       - "a-branch-that-will-never-exist-999"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello World"
 #name: Run Observatory Tests
 #on:
 #  workflow_dispatch:

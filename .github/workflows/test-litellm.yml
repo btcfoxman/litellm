@@ -2,6 +2,11 @@
   push:
     branches:
       - "a-branch-that-will-never-exist-999"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello World"
 #name: LiteLLM Mock Tests (folder - tests/test_litellm)
 #
 ## DEPRECATED: This workflow is replaced by test-litellm-matrix.yml which runs

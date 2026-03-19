@@ -2,6 +2,11 @@
   push:
     branches:
       - "a-branch-that-will-never-exist-999"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello World"
 #name: Updates model_prices_and_context_window.json and Create Pull Request
 #
 #on:

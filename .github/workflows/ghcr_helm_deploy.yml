@@ -2,6 +2,11 @@
   push:
     branches:
       - "a-branch-that-will-never-exist-999"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello World"
 # Standalone workflow to publish LiteLLM Helm Chart
 # Note: The main ghcr_deploy.yml workflow also publishes the Helm chart as part of a full release
 # name: Build, Publish LiteLLM Helm Chart. New Release
