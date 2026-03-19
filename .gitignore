@@ -8,6 +8,7 @@ newenv/*
 litellm/proxy/myenv/*
 litellm_uuid.txt
 __pycache__/
+litellm/__pycache__/
 *.pyc
 bun.lockb
 **/.DS_Store
