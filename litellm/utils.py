@@ -8784,10 +8784,6 @@ class ProviderConfigManager:
             )
 
             return Flow2APIVideoConfig()
-        elif LlmProviders.DYUAPI == provider:
-            from litellm.llms.dyuapi.videos.transformation import DyuapiVideoConfig
-
-            return DyuapiVideoConfig()
         elif LlmProviders.S2API == provider:
             from litellm.llms.s2api.videos.transformation import S2APIVideoConfig
 
@@ -8812,6 +8808,10 @@ class ProviderConfigManager:
             from litellm.llms.aiapi.videos.transformation import AIAPIVideoConfig
 
             return AIAPIVideoConfig()
+        elif LlmProviders.BDWAPI == provider:
+            from litellm.llms.bdwapi.videos.transformation import BDWAPIVideoConfig
+
+            return BDWAPIVideoConfig()
         return None
 
     @staticmethod

@@ -127,31 +127,20 @@ class Flow2APIVideoConfig(BaseVideoConfig):
         self._validate_veo_model(str(provider_model))
         message_content: List[Dict[str, Any]] = [{"type": "text", "text": prompt}]
 
-        input_reference = video_create_optional_request_params.get("input_reference")
-        image_url = video_create_optional_request_params.get("image_url")
-        end_image_url = video_create_optional_request_params.get("end_image_url")
-        if end_image_url is None:
-            end_image_url = video_create_optional_request_params.get("last_image_url")
+        source_images = self._collect_source_images(video_create_optional_request_params)
+        normalized_images: List[str] = []
+        seen_images: set[str] = set()
+        for image_item in source_images:
+            normalized = self._to_image_url(image_item)
+            if not normalized or normalized in seen_images:
+                continue
+            seen_images.add(normalized)
+            normalized_images.append(normalized)
 
-        if input_reference is not None:
-            source_images: Any = input_reference
-        else:
-            source_images_list: List[Any] = []
-            if image_url is not None:
-                source_images_list.append(image_url)
-            if end_image_url is not None:
-                source_images_list.append(end_image_url)
-            source_images = source_images_list if source_images_list else None
-
-        if source_images is not None:
-            if not isinstance(source_images, list):
-                source_images = [source_images]
-            for image_item in source_images:
-                normalized = self._to_image_url(image_item)
-                if normalized:
-                    message_content.append(
-                        {"type": "image_url", "image_url": {"url": normalized}}
-                    )
+        for image_url in normalized_images:
+            message_content.append(
+                {"type": "image_url", "image_url": {"url": image_url}}
+            )
 
         request_payload: Dict[str, Any] = {
             "model": provider_model,
@@ -184,6 +173,30 @@ class Flow2APIVideoConfig(BaseVideoConfig):
             )
 
         return request_payload, [], f"{api_base}/chat/completions"
+
+    def _collect_source_images(
+        self, video_create_optional_request_params: Dict[str, Any]
+    ) -> List[Any]:
+        images: List[Any] = []
+
+        def _extend(value: Any) -> None:
+            if value is None:
+                return
+            if isinstance(value, list):
+                for item in value:
+                    _extend(item)
+                return
+            images.append(value)
+
+        _extend(video_create_optional_request_params.get("input_reference"))
+        _extend(video_create_optional_request_params.get("image_url"))
+
+        end_frame = video_create_optional_request_params.get("end_image_url")
+        if end_frame is None:
+            end_frame = video_create_optional_request_params.get("last_image_url")
+        _extend(end_frame)
+
+        return images
 
     def transform_video_create_response(
         self,

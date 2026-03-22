@@ -223,6 +223,27 @@ def test_flow2api_video_request_uses_image_and_end_image():
     assert content[2]["image_url"]["url"] == "https://example.com/frame-end.jpg"
 
 
+def test_flow2api_video_request_keeps_tail_frame_with_input_reference():
+    cfg = Flow2APIVideoConfig()
+    request_payload, _, _ = cfg.transform_video_create_request(
+        model="veo_3_1_i2v_s_fast_fl",
+        prompt="from first frame to last frame",
+        api_base="http://127.0.0.1:4020/v1",
+        video_create_optional_request_params={
+            "image_url": "https://example.com/frame-start.jpg",
+            "input_reference": "https://example.com/frame-start.jpg",
+            "end_image_url": "https://example.com/frame-end.jpg",
+        },
+        litellm_params=MagicMock(),
+        headers={},
+    )
+    content = request_payload["messages"][0]["content"]
+    assert isinstance(content, list)
+    assert len(content) == 3
+    assert content[1]["image_url"]["url"] == "https://example.com/frame-start.jpg"
+    assert content[2]["image_url"]["url"] == "https://example.com/frame-end.jpg"
+
+
 def test_flow2api_video_duration_maps_to_seconds_in_request():
     cfg = Flow2APIVideoConfig()
     request_payload, _, _ = cfg.transform_video_create_request(
