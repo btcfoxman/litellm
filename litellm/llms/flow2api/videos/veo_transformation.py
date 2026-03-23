@@ -208,6 +208,9 @@ class Flow2APIVideoConfig(BaseVideoConfig):
     ) -> VideoObject:
         self._raise_for_status(raw_response)
         response_json, content = self._extract_response_payload_and_content(raw_response)
+        self._raise_for_error_payload(
+            response_json=response_json, headers=raw_response.headers
+        )
         video_url = self._extract_video_url(content)
         if not video_url:
             raise self.get_error_class(
@@ -240,6 +243,36 @@ class Flow2APIVideoConfig(BaseVideoConfig):
                 video_obj.id, custom_llm_provider, model
             )
         return video_obj
+
+    def _raise_for_error_payload(
+        self, response_json: Dict[str, Any], headers: Union[dict, httpx.Headers]
+    ) -> None:
+        if not isinstance(response_json, dict):
+            return
+
+        error_value: Optional[Any] = response_json.get("error")
+        performance = response_json.get("performance")
+        if error_value is None and isinstance(performance, dict):
+            if str(performance.get("status", "")).lower() == "failed":
+                error_value = performance.get("error")
+
+        if error_value is None:
+            return
+
+        if isinstance(error_value, dict):
+            error_message = (
+                error_value.get("message")
+                or error_value.get("error")
+                or json.dumps(error_value, ensure_ascii=False)
+            )
+        else:
+            error_message = str(error_value)
+
+        raise self.get_error_class(
+            error_message=error_message or "flow2api request failed.",
+            status_code=502,
+            headers=headers,
+        )
 
     def transform_video_content_request(
         self,

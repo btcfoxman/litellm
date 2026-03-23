@@ -1,8 +1,10 @@
 import os
 import sys
+import json
 from unittest.mock import MagicMock
 
 import httpx
+import pytest
 
 sys.path.insert(0, os.path.abspath("../../../../.."))
 
@@ -304,3 +306,27 @@ def test_flow2api_video_plain_text_response_parsed_to_video_url():
     )
     assert result.status == "completed"
     assert result.video_url == "https://example.com/raw.mp4"
+
+
+def test_flow2api_video_error_payload_returns_upstream_message():
+    cfg = Flow2APIVideoConfig()
+    raw_response = _make_response(
+        json.dumps(
+            {
+                "error": "生成失败: Failed to obtain reCAPTCHA token",
+                "performance": {
+                    "status": "failed",
+                    "error": "生成失败: Failed to obtain reCAPTCHA token",
+                },
+            },
+            ensure_ascii=False,
+        )
+    )
+    with pytest.raises(Exception) as exc:
+        cfg.transform_video_create_response(
+            model="veo_3_1_i2v_s_fast_portrait_fl",
+            raw_response=raw_response,
+            logging_obj=MagicMock(),
+            request_data={},
+        )
+    assert "Failed to obtain reCAPTCHA token" in str(exc.value)
