@@ -208,6 +208,7 @@ class BDWAPIVideoConfig(BaseVideoConfig):
         api_base: str,
         litellm_params: GenericLiteLLMParams,
         headers: dict,
+        variant: Optional[str] = None,
     ) -> Tuple[str, Dict]:
         original_video_id = extract_original_video_id(video_id)
         return f"{api_base}/videos/{original_video_id}/content", {}
