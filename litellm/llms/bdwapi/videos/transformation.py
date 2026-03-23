@@ -527,6 +527,19 @@ class BDWAPIVideoConfig(BaseVideoConfig):
     def _resolve_size(self, model: str, params: Dict[str, Any]) -> str:
         size_value = params.get("size") or params.get("resolution")
         if isinstance(size_value, str) and size_value.strip():
+            normalized_size = size_value.strip().lower()
+            if normalized_size in {"portrait", "9:16", "720x1280", "720*1280"}:
+                return "720x1280"
+            if normalized_size in {"landscape", "16:9", "1280x720", "1280*720"}:
+                return "1280x720"
+
+            if normalized_size in {"sd", "hd", "fhd", "2k", "4k"}:
+                aspect_ratio = str(params.get("aspect_ratio") or "").strip()
+                if aspect_ratio in {"9:16", "portrait"}:
+                    return "720x1280"
+                if aspect_ratio in {"16:9", "landscape"}:
+                    return "1280x720"
+
             return size_value.strip()
 
         aspect_ratio = params.get("aspect_ratio")
@@ -681,4 +694,3 @@ class BDWAPIVideoConfig(BaseVideoConfig):
                 if isinstance(value, str) and value.strip():
                     return value
         return None
-
