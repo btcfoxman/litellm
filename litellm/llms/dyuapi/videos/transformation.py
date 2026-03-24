@@ -67,27 +67,49 @@ class DyuapiVideoConfig(BaseVideoConfig):
     ) -> Dict:
         mapped_params: Dict[str, Any] = {}
 
+        size_mapping = {
+            "portrait": "720x1280",
+            "landscape": "1280x720",
+            "square": "1024x1024"
+        }
+
+        raw_size = video_create_optional_params.get("size")
+        raw_aspect = video_create_optional_params.get("aspect_ratio")
+        final_size = None
+        # 如果 size 是 portrait/landscape，先查表
+        if isinstance(raw_size, str) and raw_size.lower() in size_mapping:
+            final_size = size_mapping[raw_size.lower()]
+        # 如果没有 size 但有 aspect_ratio，也可以做转换
+        elif raw_aspect == "9:16":
+            final_size = "720x1280"
+        elif raw_aspect == "16:9":
+            final_size = "1280x720"
+        # 否则尝试直接透传原始 size
+        elif raw_size:
+            final_size = str(raw_size)
+        if final_size:
+            mapped_params["size"] = final_size
+
         # Supported dyuapi params
         for key in ("input_reference", "image_url", "style", "storyboard", "trim"):
             if key in video_create_optional_params:
                 value = video_create_optional_params[key]
+                if key == "seconds":
+                    mapped_params["seconds"] = str(value)
                 # 特别处理 trim 字段，解决 seconds 必须为字符串的问题
-                if key == "trim" and isinstance(value, dict):
+                elif key == "trim" and isinstance(value, dict):
                     if "seconds" in value and value["seconds"] is not None:
                         value["seconds"] = str(value["seconds"])
-                mapped_params[key] = value
+                    mapped_params[key] = value
+                elif key not in mapped_params:
+                    mapped_params[key] = value
 
         # Pass-through for any additional provider-specific params when drop_params is False
         if not drop_params:
             supported_openai_params = set(self.get_supported_openai_params(model))
             for key, value in video_create_optional_params.items():
-                if key in mapped_params or key in supported_openai_params:
+                if key in mapped_params or key in supported_openai_params or key in ("size", "aspect_ratio"):
                     continue
-                # 检查其他可能包含 seconds 字段的自定义参数
-                if isinstance(value, dict) and "seconds" in value:
-                    value["seconds"] = str(value["seconds"])
-                elif key == "seconds":
-                    value = str(value)
                 mapped_params[key] = value
 
         return mapped_params
