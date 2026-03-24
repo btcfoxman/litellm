@@ -90,27 +90,31 @@ class DyuapiVideoConfig(BaseVideoConfig):
         if final_size:
             mapped_params["size"] = final_size
 
+        if "seconds" in video_create_optional_params:
+            mapped_params["seconds"] = str(video_create_optional_params["seconds"])
+
         # Supported dyuapi params
         for key in ("input_reference", "image_url", "style", "storyboard", "trim"):
             if key in video_create_optional_params:
                 value = video_create_optional_params[key]
-                if key == "seconds":
-                    mapped_params["seconds"] = str(value)
-                # 特别处理 trim 字段，解决 seconds 必须为字符串的问题
-                elif key == "trim" and isinstance(value, dict):
-                    if "seconds" in value and value["seconds"] is not None:
+                if key == "trim" and isinstance(value, dict) and "seconds" in value:
+                    value["seconds"] = str(value["seconds"])
+                if key == "extra_body" and isinstance(value, dict):
+                    if "seconds" in value:
                         value["seconds"] = str(value["seconds"])
-                    mapped_params[key] = value
-                elif key not in mapped_params:
-                    mapped_params[key] = value
+                    if "size" in value and value["size"] == "portrait":
+                        value["size"] = "720x1280"
+                mapped_params[key] = value
 
-        # Pass-through for any additional provider-specific params when drop_params is False
         if not drop_params:
             supported_openai_params = set(self.get_supported_openai_params(model))
             for key, value in video_create_optional_params.items():
                 if key in mapped_params or key in supported_openai_params or key in ("size", "aspect_ratio"):
                     continue
-                mapped_params[key] = value
+                if key == "seconds":
+                    mapped_params[key] = str(value)
+                else:
+                    mapped_params[key] = value
 
         return mapped_params
 
