@@ -70,7 +70,12 @@ class DyuapiVideoConfig(BaseVideoConfig):
         # Supported dyuapi params
         for key in ("input_reference", "image_url", "style", "storyboard", "trim"):
             if key in video_create_optional_params:
-                mapped_params[key] = video_create_optional_params[key]
+                value = video_create_optional_params[key]
+                # 特别处理 trim 字段，解决 seconds 必须为字符串的问题
+                if key == "trim" and isinstance(value, dict):
+                    if "seconds" in value and value["seconds"] is not None:
+                        value["seconds"] = str(value["seconds"])
+                mapped_params[key] = value
 
         # Pass-through for any additional provider-specific params when drop_params is False
         if not drop_params:
@@ -78,6 +83,11 @@ class DyuapiVideoConfig(BaseVideoConfig):
             for key, value in video_create_optional_params.items():
                 if key in mapped_params or key in supported_openai_params:
                     continue
+                # 检查其他可能包含 seconds 字段的自定义参数
+                if isinstance(value, dict) and "seconds" in value:
+                    value["seconds"] = str(value["seconds"])
+                elif key == "seconds":
+                    value = str(value)
                 mapped_params[key] = value
 
         return mapped_params
