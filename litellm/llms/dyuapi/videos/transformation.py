@@ -193,7 +193,7 @@ class DyuapiVideoConfig(BaseVideoConfig):
             "progress": response_data.get("progress"),
             "size": response_data.get("size"),
             "model": response_data.get("model", model),
-            "seconds": response_data.get("seconds"),
+            "seconds": self._infer_seconds(response_data.get("seconds")),
         }
 
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]
@@ -347,7 +347,7 @@ class DyuapiVideoConfig(BaseVideoConfig):
             "progress": response_data.get("progress"),
             "size": response_data.get("size"),
             "model": response_data.get("model"),
-            "seconds": response_data.get("seconds"),
+            "seconds": self._infer_seconds(response_data.get("seconds")),
             "video_url": response_data.get("video_url"),
         }
 
@@ -428,3 +428,10 @@ class DyuapiVideoConfig(BaseVideoConfig):
             files_list.append((field_name, (image.name, image, image_content_type)))
         else:
             files_list.append((field_name, ("input_reference.png", image, image_content_type)))
+
+    def _infer_seconds(self, model: str) -> str:
+        if "25s" in model:
+            return "25"
+        if "15s" in model:
+            return "15"
+        return "10"
