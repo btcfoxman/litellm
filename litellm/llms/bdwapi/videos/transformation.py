@@ -356,18 +356,12 @@ class BDWAPIVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
         custom_llm_provider: Optional[str] = None,
     ) -> VideoObject:
-        self._raise_for_status(raw_response)
+        # Status polling should return terminal `failed/cancelled` states instead of raising 500s.
+        self._raise_for_status(raw_response, allow_failed_status=True)
         response_data = self._normalize_response_json(self._safe_json(raw_response))
         status = self._normalize_status(response_data.get("status"))
         progress = self._parse_progress(response_data.get("progress"), status)
         video_url = self._extract_video_url(response_data)
-
-        if status in {"failed", "cancelled"}:
-            raise self.get_error_class(
-                error_message=self._extract_error_message(response_data),
-                status_code=400,
-                headers=raw_response.headers,
-            )
 
         video_data: Dict[str, Any] = {
             "id": str(
@@ -386,6 +380,11 @@ class BDWAPIVideoConfig(BaseVideoConfig):
             "seconds": self._safe_seconds(None, response_data),
             "video_url": video_url,
         }
+        if status in {"failed", "cancelled"}:
+            video_data["error"] = {
+                "code": status.upper(),
+                "message": self._extract_error_message(response_data),
+            }
 
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]
 
@@ -417,10 +416,15 @@ class BDWAPIVideoConfig(BaseVideoConfig):
             headers=headers,
         )
 
-    def _raise_for_status(self, raw_response: httpx.Response) -> None:
+    def _raise_for_status(
+        self, raw_response: httpx.Response, allow_failed_status: bool = False
+    ) -> None:
         if raw_response.status_code < 400:
             response_json = self._safe_json(raw_response)
             normalized = self._normalize_response_json(response_json)
+            status = self._normalize_status(normalized.get("status"))
+            if allow_failed_status and status in {"failed", "cancelled"}:
+                return
             if self._is_business_error(normalized):
                 raise self.get_error_class(
                     error_message=self._extract_error_message(normalized),

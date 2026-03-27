@@ -476,7 +476,8 @@ class YWAPIVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
         custom_llm_provider: Optional[str] = None,
     ) -> VideoObject:
-        self._raise_for_status(raw_response)
+        # Status polling should return terminal `failed` states instead of raising 500s.
+        self._raise_for_status(raw_response, allow_failed_status=True)
         response_data = self._normalize_response_json(raw_response.json())
 
         status = self._normalize_status(response_data.get("status"))
@@ -500,11 +501,10 @@ class YWAPIVideoConfig(BaseVideoConfig):
         }
 
         if status == "failed":
-            raise self.get_error_class(
-                error_message=self._extract_error_message(response_data),
-                status_code=400,
-                headers=raw_response.headers,
-            )
+            video_data["error"] = {
+                "code": "FAILED",
+                "message": self._extract_error_message(response_data),
+            }
 
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]
 
@@ -537,7 +537,9 @@ class YWAPIVideoConfig(BaseVideoConfig):
             headers=headers,
         )
 
-    def _raise_for_status(self, raw_response: httpx.Response) -> None:
+    def _raise_for_status(
+        self, raw_response: httpx.Response, allow_failed_status: bool = False
+    ) -> None:
         if raw_response.status_code < 400:
             try:
                 payload = raw_response.json()
@@ -549,6 +551,8 @@ class YWAPIVideoConfig(BaseVideoConfig):
                 return
 
             if self._normalize_status(normalized.get("status")) == "failed":
+                if allow_failed_status:
+                    return
                 raise self.get_error_class(
                     error_message=self._extract_error_message(normalized),
                     status_code=400,

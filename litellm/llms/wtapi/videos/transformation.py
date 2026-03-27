@@ -374,7 +374,8 @@ class WTAPIVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
         custom_llm_provider: Optional[str] = None,
     ) -> VideoObject:
-        self._raise_for_status(raw_response)
+        # Status polling should return terminal `failed` states instead of raising 500s.
+        self._raise_for_status(raw_response, allow_failed_status=True)
         response_data = raw_response.json()
         status_value = response_data.get("status")
 
@@ -414,13 +415,11 @@ class WTAPIVideoConfig(BaseVideoConfig):
         if status == "failed":
             video_data["error"] = {
                 "code": "FAILURE",
-                "message": response_data.get("fail_reason"),
+                "message": response_data.get("fail_reason")
+                or response_data.get("message")
+                or response_data.get("error")
+                or "WTAPI video generation failed",
             }
-            raise self.get_error_class(
-                error_message=str(video_data["error"]["message"]),
-                status_code=400,
-                headers=raw_response.headers,
-            )
 
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]
         if video_url:
@@ -444,7 +443,9 @@ class WTAPIVideoConfig(BaseVideoConfig):
             headers=headers,
         )
 
-    def _raise_for_status(self, raw_response: httpx.Response) -> None:
+    def _raise_for_status(
+        self, raw_response: httpx.Response, allow_failed_status: bool = False
+    ) -> None:
         response_json: Dict[str, Any] = {}
         error_message: Any = raw_response.text
 
@@ -458,6 +459,8 @@ class WTAPIVideoConfig(BaseVideoConfig):
         if raw_response.status_code < 400:
             status_val = str(response_json.get("status", "")).strip().upper()
             if status_val in {"FAILURE", "FAILED", "ERROR"}:
+                if allow_failed_status:
+                    return
                 self.get_error_class(
                     error_message=str(
                         response_json.get("fail_reason")

@@ -392,7 +392,8 @@ class DyuapiVideoConfig(BaseVideoConfig):
         logging_obj: LiteLLMLoggingObj,
         custom_llm_provider: Optional[str] = None,
     ) -> VideoObject:
-        self._raise_for_status(raw_response)
+        # Status polling should return terminal `failed` states instead of raising 500s.
+        self._raise_for_status(raw_response, allow_failed_status=True)
         response_data = raw_response.json()
         status = self._normalize_status(response_data.get("status"))
         progress = self._parse_progress(response_data.get("progress"), status)
@@ -413,17 +414,16 @@ class DyuapiVideoConfig(BaseVideoConfig):
             "video_url": video_url,
         }
 
+        if status == "failed":
+            video_data["error"] = {
+                "code": "FAILED",
+                "message": self._extract_error_message(response_data),
+            }
+
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]
 
         if video_url:
             video_obj._hidden_params["video_url"] = video_url
-
-        if status == "failed":
-            raise self.get_error_class(
-                error_message=self._extract_error_message(response_data),
-                status_code=400,
-                headers=raw_response.headers,
-            )
 
         if custom_llm_provider and video_obj.id:
             video_obj.id = encode_video_id_with_provider(
@@ -451,7 +451,9 @@ class DyuapiVideoConfig(BaseVideoConfig):
             headers=headers,
         )
 
-    def _raise_for_status(self, raw_response: httpx.Response) -> None:
+    def _raise_for_status(
+        self, raw_response: httpx.Response, allow_failed_status: bool = False
+    ) -> None:
         response_json: Dict[str, Any] = {}
         error_message = raw_response.text
         try:
@@ -464,6 +466,8 @@ class DyuapiVideoConfig(BaseVideoConfig):
         if raw_response.status_code < 400:
             status = self._normalize_status(response_json.get("status"))
             if status == "failed":
+                if allow_failed_status:
+                    return
                 self.get_error_class(
                     error_message=self._extract_error_message(response_json),
                     status_code=400,
