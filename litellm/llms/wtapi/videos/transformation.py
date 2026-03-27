@@ -254,6 +254,7 @@ class WTAPIVideoConfig(BaseVideoConfig):
         api_base: str,
         litellm_params: GenericLiteLLMParams,
         headers: dict,
+        variant: Optional[str] = None,
     ) -> Tuple[str, Dict]:
         original_video_id = extract_original_video_id(video_id)
         url = f"{api_base}/v2/videos/generations/{original_video_id}"
@@ -266,9 +267,13 @@ class WTAPIVideoConfig(BaseVideoConfig):
     ) -> bytes:
         self._raise_for_status(raw_response)
         response_data = raw_response.json()
-        video_url = (response_data.get("data") or {}).get("output")
+        video_url = self._extract_video_output_url(response_data)
         if not video_url:
-            raise ValueError("output not found in response. Video may not be ready.")
+            raise self.get_error_class(
+                error_message=self._build_video_not_ready_message(response_data),
+                status_code=409,
+                headers=raw_response.headers,
+            )
 
         httpx_client: HTTPHandler = _get_httpx_client()
         video_response = httpx_client.get(video_url)
@@ -282,9 +287,13 @@ class WTAPIVideoConfig(BaseVideoConfig):
     ) -> bytes:
         self._raise_for_status(raw_response)
         response_data = raw_response.json()
-        video_url = (response_data.get("data") or {}).get("output")
+        video_url = self._extract_video_output_url(response_data)
         if not video_url:
-            raise ValueError("output not found in response. Video may not be ready.")
+            raise self.get_error_class(
+                error_message=self._build_video_not_ready_message(response_data),
+                status_code=409,
+                headers=raw_response.headers,
+            )
 
         async_httpx_client: AsyncHTTPHandler = get_async_httpx_client(
             llm_provider=litellm.LlmProviders.WTAPI,
@@ -379,7 +388,7 @@ class WTAPIVideoConfig(BaseVideoConfig):
         elif status_value in {"FAILURE", "FAILED", "ERROR"}:
             status = "failed"
 
-        video_url = (response_data.get("data") or {}).get("output")
+        video_url = self._extract_video_output_url(response_data)
         progress = response_data.get("progress")
         if isinstance(progress, str):
             progress = progress.strip()
@@ -438,24 +447,30 @@ class WTAPIVideoConfig(BaseVideoConfig):
     def _raise_for_status(self, raw_response: httpx.Response) -> None:
         response_json: Dict[str, Any] = {}
         error_message: Any = raw_response.text
+
         try:
             parsed_json = raw_response.json()
             if isinstance(parsed_json, dict):
                 response_json = parsed_json
-            if raw_response.status_code < 400:
-                status_val = str(response_json.get("status", "")).strip().upper()
-                if status_val in {"FAILURE", "FAILED", "ERROR"}:
-                    raise self.get_error_class(
-                        error_message=str(
-                            response_json.get("fail_reason")
-                            or response_json.get("message")
-                            or response_json.get("error")
-                            or response_json
-                        ),
-                        status_code=400,
-                        headers=raw_response.headers,
-                    )
-                return
+        except Exception:
+            response_json = {}
+
+        if raw_response.status_code < 400:
+            status_val = str(response_json.get("status", "")).strip().upper()
+            if status_val in {"FAILURE", "FAILED", "ERROR"}:
+                self.get_error_class(
+                    error_message=str(
+                        response_json.get("fail_reason")
+                        or response_json.get("message")
+                        or response_json.get("error")
+                        or response_json
+                    ),
+                    status_code=400,
+                    headers=raw_response.headers,
+                )
+            return
+
+        if response_json:
             error_message = (
                 response_json.get("detail")
                 or response_json.get("msg")
@@ -465,11 +480,49 @@ class WTAPIVideoConfig(BaseVideoConfig):
                 or response_json.get("fail_reason")
                 or error_message
             )
-        except Exception:
-            if raw_response.status_code < 400:
-                return
+
         raise self.get_error_class(
             error_message=str(error_message),
             status_code=raw_response.status_code,
             headers=raw_response.headers,
         )
+
+    def _extract_video_output_url(self, response_data: Dict[str, Any]) -> Optional[str]:
+        data = response_data.get("data")
+        if isinstance(data, dict):
+            output = data.get("output")
+            if isinstance(output, str) and output.strip():
+                return output.strip()
+            if isinstance(output, list):
+                for item in output:
+                    if isinstance(item, str) and item.strip():
+                        return item.strip()
+                    if isinstance(item, dict):
+                        for key in ("url", "video_url", "output"):
+                            value = item.get(key)
+                            if isinstance(value, str) and value.strip():
+                                return value.strip()
+            for key in ("video_url", "url", "download_url"):
+                value = data.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+
+        for key in ("output", "video_url", "url", "download_url"):
+            value = response_data.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return None
+
+    def _build_video_not_ready_message(self, response_data: Dict[str, Any]) -> str:
+        status = str(response_data.get("status", "")).strip() or "unknown"
+        data = response_data.get("data")
+        data_message = data.get("message") if isinstance(data, dict) else None
+        fail_reason = (
+            response_data.get("fail_reason")
+            or response_data.get("message")
+            or response_data.get("error")
+            or data_message
+        )
+        if fail_reason:
+            return str(fail_reason)
+        return f"WTAPI video is not ready yet. status={status}"

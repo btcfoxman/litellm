@@ -210,13 +210,10 @@ class DyuapiVideoConfig(BaseVideoConfig):
     ) -> VideoObject:
         self._raise_for_status(raw_response)
         response_data = raw_response.json()
-        if response_data.get("status") == "failed":
+        status = self._normalize_status(response_data.get("status"))
+        if status == "failed":
             raise self.get_error_class(
-                error_message=str(
-                    response_data.get("error_message")
-                    or response_data.get("error")
-                    or "video generation failed"
-                ),
+                error_message=self._extract_error_message(response_data),
                 status_code=400,
                 headers=raw_response.headers,
             )
@@ -224,12 +221,14 @@ class DyuapiVideoConfig(BaseVideoConfig):
         video_data: Dict[str, Any] = {
             "id": response_data.get("id", ""),
             "object": response_data.get("object", "video"),
-            "status": response_data.get("status", "queued"),
+            "status": status,
             "created_at": response_data.get("created_at"),
-            "progress": response_data.get("progress"),
+            "progress": self._parse_progress(response_data.get("progress"), status),
             "size": response_data.get("size"),
             "model": response_data.get("model", model),
-            "seconds": self._infer_seconds(response_data.get("seconds")),
+            "seconds": self._infer_seconds(
+                response_data.get("seconds"), response_data.get("model", model)
+            ),
         }
 
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]
@@ -269,9 +268,20 @@ class DyuapiVideoConfig(BaseVideoConfig):
     ) -> bytes:
         self._raise_for_status(raw_response)
         response_data = raw_response.json()
-        video_url = response_data.get("video_url")
+        status = self._normalize_status(response_data.get("status"))
+        if status == "failed":
+            raise self.get_error_class(
+                error_message=self._extract_error_message(response_data),
+                status_code=400,
+                headers=raw_response.headers,
+            )
+        video_url = self._extract_video_url(response_data)
         if not video_url:
-            raise ValueError("video_url not found in response. Video may not be ready.")
+            raise self.get_error_class(
+                error_message=f"Dyuapi video is not ready yet. status={status}",
+                status_code=409,
+                headers=raw_response.headers,
+            )
 
         httpx_client: HTTPHandler = _get_httpx_client()
         video_response = httpx_client.get(video_url)
@@ -286,9 +296,20 @@ class DyuapiVideoConfig(BaseVideoConfig):
     ) -> bytes:
         self._raise_for_status(raw_response)
         response_data = raw_response.json()
-        video_url = response_data.get("video_url")
+        status = self._normalize_status(response_data.get("status"))
+        if status == "failed":
+            raise self.get_error_class(
+                error_message=self._extract_error_message(response_data),
+                status_code=400,
+                headers=raw_response.headers,
+            )
+        video_url = self._extract_video_url(response_data)
         if not video_url:
-            raise ValueError("video_url not found in response. Video may not be ready.")
+            raise self.get_error_class(
+                error_message=f"Dyuapi video is not ready yet. status={status}",
+                status_code=409,
+                headers=raw_response.headers,
+            )
 
         async_httpx_client: AsyncHTTPHandler = get_async_httpx_client(
             llm_provider=litellm.LlmProviders.DYUAPI,
@@ -373,33 +394,33 @@ class DyuapiVideoConfig(BaseVideoConfig):
     ) -> VideoObject:
         self._raise_for_status(raw_response)
         response_data = raw_response.json()
+        status = self._normalize_status(response_data.get("status"))
+        progress = self._parse_progress(response_data.get("progress"), status)
+        video_url = self._extract_video_url(response_data)
 
         video_data: Dict[str, Any] = {
             "id": response_data.get("id", ""),
             "object": response_data.get("object", "video"),
-            "status": response_data.get("status", "queued"),
+            "status": status,
             "created_at": response_data.get("created_at"),
             "completed_at": response_data.get("completed_at"),
-            "progress": response_data.get("progress"),
+            "progress": progress,
             "size": response_data.get("size"),
             "model": response_data.get("model"),
-            "seconds": self._infer_seconds(response_data.get("seconds")),
-            "video_url": response_data.get("video_url"),
+            "seconds": self._infer_seconds(
+                response_data.get("seconds"), response_data.get("model")
+            ),
+            "video_url": video_url,
         }
 
         video_obj = VideoObject(**video_data)  # type: ignore[arg-type]
 
-        video_url = response_data.get("video_url")
         if video_url:
             video_obj._hidden_params["video_url"] = video_url
 
-        if response_data.get("status") == "failed":
+        if status == "failed":
             raise self.get_error_class(
-                error_message=str(
-                    response_data.get("error_message")
-                    or response_data.get("error")
-                    or "video generation failed"
-                ),
+                error_message=self._extract_error_message(response_data),
                 status_code=400,
                 headers=raw_response.headers,
             )
@@ -431,21 +452,29 @@ class DyuapiVideoConfig(BaseVideoConfig):
         )
 
     def _raise_for_status(self, raw_response: httpx.Response) -> None:
-        if raw_response.status_code < 400:
-            return
+        response_json: Dict[str, Any] = {}
         error_message = raw_response.text
         try:
-            response_json = raw_response.json()
-            error_message = (
-                response_json.get("detail")
-                or response_json.get("msg")
-                or response_json.get("message")
-                or response_json.get("error")
-                or response_json.get("error_message")
-                or error_message
-            )
+            parsed_json = raw_response.json()
+            if isinstance(parsed_json, dict):
+                response_json = parsed_json
         except Exception:
-            pass
+            response_json = {}
+
+        if raw_response.status_code < 400:
+            status = self._normalize_status(response_json.get("status"))
+            if status == "failed":
+                self.get_error_class(
+                    error_message=self._extract_error_message(response_json),
+                    status_code=400,
+                    headers=raw_response.headers,
+                )
+            return
+
+        if response_json:
+            error_message = self._extract_error_message(
+                response_json, fallback=str(error_message)
+            )
         raise self.get_error_class(
             error_message=str(error_message),
             status_code=raw_response.status_code,
@@ -465,9 +494,75 @@ class DyuapiVideoConfig(BaseVideoConfig):
         else:
             files_list.append((field_name, ("input_reference.png", image, image_content_type)))
 
-    def _infer_seconds(self, model: str) -> str:
-        if "25s" in model:
+    def _extract_error_message(
+        self, response_data: Dict[str, Any], fallback: str = "video generation failed"
+    ) -> str:
+        error_obj = response_data.get("error")
+        if isinstance(error_obj, dict):
+            message = error_obj.get("message") or error_obj.get("msg") or error_obj.get(
+                "detail"
+            )
+            if isinstance(message, str) and message.strip():
+                return message.strip()
+        if isinstance(error_obj, str) and error_obj.strip():
+            return error_obj.strip()
+
+        for key in ("error_message", "fail_reason", "message", "msg", "detail"):
+            value = response_data.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+
+        return fallback
+
+    def _extract_video_url(self, response_data: Dict[str, Any]) -> Optional[str]:
+        for key in ("video_url", "url", "az_url"):
+            value = response_data.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return None
+
+    def _normalize_status(self, status_value: Any) -> str:
+        status = str(status_value or "").strip().lower()
+        if status in {"failed", "error"}:
+            return "failed"
+        if status in {"completed", "succeeded", "success", "done"}:
+            return "completed"
+        if status in {"in_progress", "processing", "running"}:
+            return "in_progress"
+        return "queued"
+
+    def _parse_progress(self, progress_value: Any, status: str) -> Optional[int]:
+        if progress_value is None:
+            if status == "completed":
+                return 100
+            if status == "queued":
+                return 0
+            return None
+        if isinstance(progress_value, int):
+            return progress_value
+        if isinstance(progress_value, float):
+            return int(progress_value)
+        if isinstance(progress_value, str):
+            value = progress_value.strip()
+            if value.endswith("%"):
+                value = value[:-1].strip()
+            try:
+                return int(float(value))
+            except ValueError:
+                return None
+        return None
+
+    def _infer_seconds(self, seconds_value: Any, model: Any) -> str:
+        if seconds_value is not None:
+            seconds_text = str(seconds_value).strip()
+            if seconds_text:
+                if seconds_text.endswith("s"):
+                    seconds_text = seconds_text[:-1].strip()
+                return seconds_text
+
+        model_text = str(model or "")
+        if "25s" in model_text:
             return "25"
-        if "15s" in model:
+        if "15s" in model_text:
             return "15"
         return "10"

@@ -228,9 +228,20 @@ class BDWAPIVideoConfig(BaseVideoConfig):
             return raw_response.content
 
         response_data = self._normalize_response_json(self._safe_json(raw_response))
+        status = self._normalize_status(response_data.get("status"))
+        if status in {"failed", "cancelled"}:
+            raise self.get_error_class(
+                error_message=self._extract_error_message(response_data),
+                status_code=400,
+                headers=raw_response.headers,
+            )
         video_url = self._extract_video_url(response_data)
         if not video_url:
-            raise ValueError("No downloadable video payload returned by BDWAPI.")
+            raise self.get_error_class(
+                error_message=f"BDWAPI video is not ready yet. status={status}",
+                status_code=409,
+                headers=raw_response.headers,
+            )
 
         httpx_client: HTTPHandler = _get_httpx_client()
         video_response = httpx_client.get(str(video_url))
@@ -252,9 +263,20 @@ class BDWAPIVideoConfig(BaseVideoConfig):
             return raw_response.content
 
         response_data = self._normalize_response_json(self._safe_json(raw_response))
+        status = self._normalize_status(response_data.get("status"))
+        if status in {"failed", "cancelled"}:
+            raise self.get_error_class(
+                error_message=self._extract_error_message(response_data),
+                status_code=400,
+                headers=raw_response.headers,
+            )
         video_url = self._extract_video_url(response_data)
         if not video_url:
-            raise ValueError("No downloadable video payload returned by BDWAPI.")
+            raise self.get_error_class(
+                error_message=f"BDWAPI video is not ready yet. status={status}",
+                status_code=409,
+                headers=raw_response.headers,
+            )
 
         async_httpx_client: AsyncHTTPHandler = get_async_httpx_client(
             llm_provider=litellm.LlmProviders.BDWAPI,
@@ -398,9 +420,10 @@ class BDWAPIVideoConfig(BaseVideoConfig):
     def _raise_for_status(self, raw_response: httpx.Response) -> None:
         if raw_response.status_code < 400:
             response_json = self._safe_json(raw_response)
-            if self._is_business_error(response_json):
+            normalized = self._normalize_response_json(response_json)
+            if self._is_business_error(normalized):
                 raise self.get_error_class(
-                    error_message=self._extract_error_message(response_json),
+                    error_message=self._extract_error_message(normalized),
                     status_code=400,
                     headers=raw_response.headers,
                 )
@@ -409,7 +432,9 @@ class BDWAPIVideoConfig(BaseVideoConfig):
         error_message: Any = raw_response.text
         response_json = self._safe_json(raw_response)
         if response_json:
-            error_message = self._extract_error_message(response_json)
+            error_message = self._extract_error_message(
+                self._normalize_response_json(response_json)
+            )
         raise self.get_error_class(
             error_message=str(error_message),
             status_code=raw_response.status_code,
@@ -449,11 +474,22 @@ class BDWAPIVideoConfig(BaseVideoConfig):
         return False
 
     def _extract_error_message(self, response_json: Dict[str, Any]) -> str:
+        error_obj = response_json.get("error")
+        if isinstance(error_obj, dict):
+            message = (
+                error_obj.get("message")
+                or error_obj.get("msg")
+                or error_obj.get("detail")
+            )
+            if isinstance(message, str) and message.strip():
+                return message.strip()
+        if isinstance(error_obj, str) and error_obj.strip():
+            return error_obj.strip()
+
         return str(
             response_json.get("detail")
             or response_json.get("msg")
             or response_json.get("message")
-            or response_json.get("error")
             or response_json.get("error_message")
             or response_json
         )

@@ -339,6 +339,7 @@ class YWAPIVideoConfig(BaseVideoConfig):
         api_base: str,
         litellm_params: GenericLiteLLMParams,
         headers: dict,
+        variant: Optional[str] = None,
     ) -> Tuple[str, Dict]:
         original_video_id = extract_original_video_id(video_id)
         url = f"{api_base}/v1/video/query?id={quote(original_video_id, safe='')}"
@@ -351,9 +352,20 @@ class YWAPIVideoConfig(BaseVideoConfig):
     ) -> bytes:
         self._raise_for_status(raw_response)
         response_data = self._normalize_response_json(raw_response.json())
-        video_url = response_data.get("video_url")
+        status = self._normalize_status(response_data.get("status"))
+        if status == "failed":
+            raise self.get_error_class(
+                error_message=self._extract_error_message(response_data),
+                status_code=400,
+                headers=raw_response.headers,
+            )
+        video_url = self._extract_video_url(response_data)
         if not video_url:
-            raise ValueError("video_url not found in response. Video may not be ready.")
+            raise self.get_error_class(
+                error_message=f"YWAPI video is not ready yet. status={status}",
+                status_code=409,
+                headers=raw_response.headers,
+            )
 
         httpx_client: HTTPHandler = _get_httpx_client()
         video_response = httpx_client.get(video_url)
@@ -368,9 +380,20 @@ class YWAPIVideoConfig(BaseVideoConfig):
     ) -> bytes:
         self._raise_for_status(raw_response)
         response_data = self._normalize_response_json(raw_response.json())
-        video_url = response_data.get("video_url")
+        status = self._normalize_status(response_data.get("status"))
+        if status == "failed":
+            raise self.get_error_class(
+                error_message=self._extract_error_message(response_data),
+                status_code=400,
+                headers=raw_response.headers,
+            )
+        video_url = self._extract_video_url(response_data)
         if not video_url:
-            raise ValueError("video_url not found in response. Video may not be ready.")
+            raise self.get_error_class(
+                error_message=f"YWAPI video is not ready yet. status={status}",
+                status_code=409,
+                headers=raw_response.headers,
+            )
 
         async_httpx_client: AsyncHTTPHandler = get_async_httpx_client(
             llm_provider=litellm.LlmProviders.YWAPI,
@@ -473,7 +496,7 @@ class YWAPIVideoConfig(BaseVideoConfig):
                 if response_data.get("duration") is not None
                 else None
             ),
-            "video_url": response_data.get("video_url"),
+            "video_url": self._extract_video_url(response_data),
         }
 
         if status == "failed":
@@ -554,14 +577,32 @@ class YWAPIVideoConfig(BaseVideoConfig):
         )
 
     def _extract_error_message(self, response_json: Dict[str, Any]) -> str:
+        error_obj = response_json.get("error")
+        if isinstance(error_obj, dict):
+            message = (
+                error_obj.get("message")
+                or error_obj.get("msg")
+                or error_obj.get("detail")
+            )
+            if isinstance(message, str) and message.strip():
+                return message.strip()
+        if isinstance(error_obj, str) and error_obj.strip():
+            return error_obj.strip()
+
         return str(
             response_json.get("detail")
             or response_json.get("msg")
             or response_json.get("message")
-            or response_json.get("error")
             or response_json.get("error_message")
             or response_json
         )
+
+    def _extract_video_url(self, response_json: Dict[str, Any]) -> Optional[str]:
+        for key in ("video_url", "url", "az_url", "output"):
+            value = response_json.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return None
 
     def _normalize_response_json(self, response_json: Any) -> Dict[str, Any]:
         if not isinstance(response_json, dict):
